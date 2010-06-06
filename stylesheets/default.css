@@ -1,0 +1,70 @@
+.admob
+{
+	height:45px;
+	display:none;
+}
+
+.dragging
+{
+	opacity:.5;
+	z-index:10000;
+}
+
+#bottom_padding
+{
+	position:absolute;
+	left:0px;
+	top:0px;
+	height:50px;
+	//border:2px solid red;
+}
+
+.add_icon
+{
+	background:url(../images/add-contact.png);
+	-webkit-background-size:100% 100%;
+}
+
+.list_icon
+{
+	background:url(../images/list.png);
+	-webkit-background-size:100% 100%;
+}
+
+.grid_icon
+{
+	background:url(../images/grid.png);
+	-webkit-background-size:100% 100%;
+}
+.cmdMenu
+{
+	background: url(../images/command-menu-gradient.png) bottom left repeat-x;
+}
+
+body.palm-default {
+	background-image: url("../images/bg.png");
+	background-repeat: no-repeat;
+	background-color:rgb(237,240,255);
+}
+
+.palm-row, .palm-row.first, .palm-row.last
+{
+	background-color:rgb(237,240,255);
+}
+
+.palm-row.first
+{
+	-webkit-border-radius: 15px 15px 0px 0px;
+}
+
+.palm-row.last
+{
+	-webkit-border-radius: 0px 0px 15px 15px ;
+}
+
+.actionButton
+{
+	float:left;
+	display:inline;
+	width:33%;
+}

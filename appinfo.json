@@ -1,0 +1,11 @@
+{
+	"id": "com.tiqtech.incontact",
+	"version": "1.0.0",
+	"vendor": "tiqtech.com",
+	"type": "web",
+	"main": "index.html",
+	"title": "InContact",
+	"icon": "icon.png",
+	"splashicon": "icon-256x256.png",
+	"splashBackground": "images/splash-bg.png"
+}
