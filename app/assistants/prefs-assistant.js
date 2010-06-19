@@ -6,7 +6,7 @@ var PrefsAssistant = Class.create(
 		this.prefs = null;
 	},
 	setup:function() {
-		Mojo.Log.info("> LBB.Preferences.setup");
+		//Mojo.Log.info("> LBB.Preferences.setup");
 	
 		this.prefs = LBB.Preferences.getInstance();
 	
@@ -21,10 +21,14 @@ var PrefsAssistant = Class.create(
 		// initial view
 		this.controller.setupWidget('fieldInitialView', {choices:[{label:"Grid",value:"main"},{label:"List",value:"list"}]},this.prefs.getPropertyObject("initialView"));
 		Mojo.Event.listen($('fieldInitialView'), Mojo.Event.propertyChange, this.handleInitialViewChange.bind(this));
-			
-		// rotate
-		this.controller.setupWidget('fieldAsyncPhoto', {trueLabel:"Yes",falseLabel:"No"},this.prefs.getPropertyObject("asyncPhoto"));
-		Mojo.Event.listen($('fieldAsyncPhoto'), Mojo.Event.propertyChange, this.handleAsyncPhotoChange.bind(this));
+				
+		// theme
+		this.controller.setupWidget('fieldTheme', {choices:[{label:"Default",value:"default"},{label:"Blue Steel",value:"bluesteel"}, {label:"Spring",value:"spring"}]},this.prefs.getPropertyObject("theme"));
+		Mojo.Event.listen($('fieldTheme'), Mojo.Event.propertyChange, this.handleThemeChange.bind(this));
+		
+		// async photo load
+		//this.controller.setupWidget('fieldAsyncPhoto', {trueLabel:"Yes",falseLabel:"No"},this.prefs.getPropertyObject("asyncPhoto"));
+		//Mojo.Event.listen($('fieldAsyncPhoto'), Mojo.Event.propertyChange, this.handleAsyncPhotoChange.bind(this));
 	},
 	activate:function(event) {
 		
@@ -49,6 +53,10 @@ var PrefsAssistant = Class.create(
 	handleInitialViewChange:function(event)
 	{
 		this.updateProperty("initialView", event.value);
+	},
+	handleThemeChange:function(event) {
+		this.updateProperty("theme", event.value);
+		LBB.Util.loadTheme(this.controller);
 	},
 	updateProperty:function(name, value)
 	{

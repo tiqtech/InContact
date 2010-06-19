@@ -1,6 +1,6 @@
 LBB.Util =
 {
-	appMenuModel:{items: [Mojo.Menu.editItem,{label: $L("Preferences"),command: Mojo.Menu.prefsCmd}, Mojo.Menu.helpItem]},
+	appMenuModel:{items: [Mojo.Menu.editItem,{label: $L("Preferences"),command: Mojo.Menu.prefsCmd}, {label: $L("Help"),command: Mojo.Menu.helpCmd}]},
 	cmdMenuModel:
 	{
 	    visible: true,
@@ -42,14 +42,45 @@ LBB.Util =
 			AdMob.ad.request(
 			{
 				onSuccess:(function(ad){
-					Mojo.Log.info("ok");
 					this.controller.get(targetId).update(ad);
-					Mojo.Log.info("ok");
+					setTimeout(function() { LBB.Util.displayAd(targetId, source); }, 300000);	// new add ever 5 minutes
 				}).bind(source),
 				onFailure:function(msg) {
-					Mojo.Log.error("ERROR: " + msg);
+					setTimeout(function() { LBB.Util.displayAd(targetId, source); }, 30000);	// retry after 30 seconds
 				}
 			});
+		}
+	},
+	loadTheme:function(controller) {
+		var prefs = LBB.Preferences.getInstance();
+		var theme = prefs.getProperty("theme");
+		new Ajax.Request(Mojo.appPath + "/themes/" + theme + "/config.json", {
+			method:"get",
+			onSuccess:function(xhr) { 
+				var c = controller;
+				var t = theme;
+				this.onLoadTheme(xhr, c, t);
+			}.bind(this)
+		});
+	},
+	onLoadTheme:function(xhr, controller, theme) {
+		if(xhr.status == 200) {
+			try {
+				var attr = eval("("+xhr.responseText+")");
+				if(typeof(attr) == "object") {
+					attr.theme = theme;
+					var content = Mojo.View.render({"template":"themes/style", attributes:attr});
+					var themeNode = controller.get('theme-style');
+					
+					if(themeNode == null) {
+						$(document.body).insert(content);
+					} else {
+						themeNode.replace(content);
+					}
+				}
+			} catch (ex) {
+				Mojo.Log.error(ex);
+			}
 		}
 	}
 }

@@ -24,7 +24,7 @@ var MainAssistant = Class.create(
 		/** Setup Widgets **/
 		
 		this.initContactWidgets(this.getModel().contacts);
-		this.controller.setupWidget("main-scroller", {mode:"vertical"}, {});		
+		this.controller.setupWidget("main-scroller", {mode:"vertical"}, {});
 		LBB.Util.setupCommandMenu(this.controller, 'grid', false);
 		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.appMenuModel);
 		
@@ -35,7 +35,7 @@ var MainAssistant = Class.create(
 		this.controller.watchModel(this.getModel(), this, this.handleModelChanged.bind(this));
 		
 		/** Other Setup **/
-
+		
 		this.getModel().selected = false;	// deselected by default
 		this.resizeScroller();
 	},
@@ -51,7 +51,6 @@ var MainAssistant = Class.create(
 		}
 		else if(this.getModel().modified)
 		{
-			Mojo.Log.info("MainAssistant.activate modified");
 			// clear modified flag and save changes
 			this.getModel().modified=false;
 			LBB.Model.save();
@@ -98,7 +97,8 @@ var MainAssistant = Class.create(
 		
 		this.selected = event.currentTarget;
 		this.selected.mojo.select(true);
-		this.scroller.mojo.scrollTo(0, this.selected.offsetTop + this.selected.offsetHeight, true);
+		
+		this.revealContact(this.selected);
 		
 		LBB.Util.enableEditMenu(this.controller, true);
 		
@@ -106,7 +106,7 @@ var MainAssistant = Class.create(
 	},
 	onEnableDrag:function(e)
 	{
-		Mojo.Log.info("> MainAssistant.onEnableDrag");
+		//Mojo.Log.info("> MainAssistant.onEnableDrag");
 		
 		this.onClearSelected();
 			
@@ -185,12 +185,29 @@ var MainAssistant = Class.create(
 	},
 	resizeScroller:function()
 	{
-		var admobHeight = (LBB.Preferences.getInstance().getProperty("disableAds")) ? 0 : $('main_admob').offsetHeight;
-		var s = this.scroller
+		var admobHeight = (LBB.Preferences.getInstance().getProperty("disableAds")) ? 0 : 40;
+		var s = this.scroller;
 		s.style.width = window.innerWidth + "px";
 		s.style.height = (window.innerHeight - admobHeight) + "px";
 		
-		//Mojo.Log.info([s.style.width, s.style.height].join(","));
+		//Mojo.Log.info([admobHeight,s.style.height,$('main_admob').offsetHeight].join(","));
+	},
+	revealContact:function(widget) {
+		var dim = this.getLayoutDimensions();
+		var state = this.scroller.mojo.getState();
+		var scrollerSize = this.scroller.mojo.scrollerSize();
+		
+		var top = state.top+widget.offsetTop;
+		var bottom = top + dim.size;
+		var y;
+		
+		if(top < 0) {	// top of element is above view
+			y = -(widget.offsetTop - dim.padding);
+		} else if(bottom > scrollerSize.height-50) {	// bottom of element is below view
+			y = state.top - (bottom - scrollerSize.height + 50);
+		}
+		
+		this.scroller.mojo.scrollTo(undefined, y, true, true);
 	},
 	initContactWidgets:function()
 	{
@@ -206,7 +223,7 @@ var MainAssistant = Class.create(
 			if($(id) == null) {
 				// if this is called during setup, the scene controller will take care of initializing widgets
 				// if it's called otherwise (e.g. when returning from select contact), calling newContent to force init
-				$(this.scroller).insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
+				$(this.scroller.id+"-scroll-wrapper").insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
 				this.controller.setupWidget(id, {dimensions:this.getLayoutDimensions()}, m.contacts[i]);
 				this.controller.newContent(this.scroller);
 			
@@ -272,9 +289,6 @@ var MainAssistant = Class.create(
 		    o.style.width = size + "px";
 		    o.style.height = size + "px";
 
-		    //Mojo.Log.info(n + ": " + contacts[i].firstName + " " + o.style.left + "," + o.style.top + ", " + o.style.width + "," + size);
-		    //Mojo.Log.info(o.outerHTML);
-		    
 		    n++;
 		}
 
@@ -302,24 +316,23 @@ var MainAssistant = Class.create(
 			offsetTop = $('main_admob').offsetHeight + 4;
 		
 		return {
-			offsetTop:0, //offsetTop,
+			offsetTop:0,
 			offsetLeft:0,
 			perRow:perRow,
 			size:width,
 			padding:contactPadding
 		};
 	},
-	indexFromPosition:function(pos, log)
+	indexFromPosition:function(pos)
 	{
 		var dim = this.getLayoutDimensions();
 		
-		var col = Math.round(pos.x/dim.size);
+		var col = Math.ceil(pos.x/dim.size);
 		var row = Math.floor(pos.y/dim.size);
 		
 		var index = (row*dim.perRow)+col;
 		
-		if(log)
-			Mojo.Log.info(index + "."+ row + "," + nPerRow + "," + col);
+		//Mojo.Log.info([pos.x,pos.y,row,col].join(","));
 			
 		var max = this.getModel().contacts.length;
 		
@@ -355,7 +368,7 @@ var DropTarget = Class.create(
 	},
 	dragDrop:function(el)
 	{
-		Mojo.Log.info("> DropTarget.dragDrop");
+		//Mojo.Log.info("> DropTarget.dragDrop");
 		this.assistant.onDragEnd(this.getCenter(el));
 	},
 	dragRemove:function(el)
@@ -367,7 +380,7 @@ var DropTarget = Class.create(
 		var elDimensions = el.getDimensions();
 		var p = {
 			x: (this.pos.left + (Math.round(elDimensions.width/2))),
-			y: (this.pos.top + (Math.round(elDimensions.height/2)))
+			y: (this.pos.top - this.assistant.scroller.offsetTop + (Math.round(elDimensions.height/2)))
 		};
 		
 		return p;

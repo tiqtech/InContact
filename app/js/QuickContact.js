@@ -92,7 +92,7 @@ Mojo.Widget.QuickContact = Class.create({
 		this.render();
 	},
 	loadContactPhoto:function() {
-		Mojo.Log.info("> QuickContact.loadContactPhoto");
+		//Mojo.Log.info("> QuickContact.loadContactPhoto");
 		
 		var img = new Element('img', {'style':'position:absolute;visibility:hidden;z-index:-10000'});
 		$(this.attributes.id).insert(img);

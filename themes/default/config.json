@@ -1,0 +1,11 @@
+{
+	"list":
+	{
+		"bgcolor":"rgb(237,240,255)"
+	},
+	"body":
+	{
+		"bgcolor":"rgb(237,240,255)",
+		"bgimage":"bg.png"
+	}
+}

@@ -1,4 +1,5 @@
-<div class="palm-header left truncating-text">
+<div id="edit_contact_header">
+	<img id="edit_contact_photo"/>
 	<span id="edit_contact_name"></span>
 </div>
 <div class="palm-header-spacer"></div>
@@ -6,26 +7,38 @@
 		<div class="palm-list">
 			<div class="palm-row first">
 				<div class="palm-row-wrapper">
-					<div class="label left">Phone</div>
-					<div x-mojo-element="ListSelector" id="phoneList" class="right"></div>
+					<div id="phoneWrapper">
+						<div class="label left">Phone</div>
+						<div class="contact-details" id="phoneDetails"></div>
+					</div>
+					<div x-mojo-element="Drawer" id="phoneDrawer" class="edit-contact-drawer"></div>
 				</div>
 			</div>
 			<div class="palm-row">
 				<div class="palm-row-wrapper">
-					<div class="label left">SMS</div>
-					<div x-mojo-element="ListSelector" id="smsList" class="palm-list-selector right"></div>
+					<div id="smsWrapper" >
+						<div class="label left">SMS</div>
+						<div class="contact-details" id="smsDetails"></div>
+					</div>
+					<div x-mojo-element="Drawer" id="smsDrawer" class="edit-contact-drawer"></div>
 				</div>
 			</div>
 			<div class="palm-row">
 				<div class="palm-row-wrapper">
-					<div class="label left">IM</div>
-					<div x-mojo-element="ListSelector" id="imList" class="palm-list-selector right"></div>
+					<div id="imWrapper">
+						<div class="label left">IM</div>
+						<div class="contact-details" id="imDetails"></div>
+					</div>
+					<div x-mojo-element="Drawer" id="imDrawer" class="edit-contact-drawer"></div>
 				</div>
 			</div>
 			<div class="palm-row last">
 				<div class="palm-row-wrapper">
-					<div class="label left">Email</div>
-					<div x-mojo-element="ListSelector" id="emailList" class="palm-list-selector right"></div>
+					<div id="emailWrapper">
+						<div class="label left">Email</div>
+						<div class="contact-details" id="emailDetails"></div>
+					</div>
+					<div x-mojo-element="Drawer" id="emailDrawer" class="edit-contact-drawer"></div>
 				</div>
 			</div>
 		</div>
@@ -34,5 +47,3 @@
 <div id="saveButton" x-mojo-element="Button" class="left actionButton"></div>
 <div id="cancelButton" x-mojo-element="Button" class="left actionButton"></div>
 <div id="deleteButton" x-mojo-element="Button" class="right actionButton"></div>
-
-

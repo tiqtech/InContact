@@ -6,6 +6,7 @@
     {"source": "app/js/Preferences.js"},
     {"source": "app/js/Util.js"},
     {"source": "app/js/QuickContact.js"},
+    {"source": "app/js/Help.js"},
     {"source": "app/assistants/stage-assistant.js"},
     {
         "scenes": "main",
@@ -14,6 +15,10 @@
     {
         "scenes": "list",
         "source": "app/assistants/list-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
     },
     {
         "scenes": "prefs",

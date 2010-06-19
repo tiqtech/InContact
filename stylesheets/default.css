@@ -1,7 +1,13 @@
 .admob
 {
 	height:45px;
+	font-size:10pt;
+	line-height:45px;
+	text-align:center;
 	display:none;
+	background-color:rgba(255,255,255,.5);
+	color:#000;
+	overflow:hidden;
 }
 
 .dragging
@@ -16,7 +22,6 @@
 	left:0px;
 	top:0px;
 	height:50px;
-	//border:2px solid red;
 }
 
 .add_icon
@@ -36,20 +41,42 @@
 	background:url(../images/grid.png);
 	-webkit-background-size:100% 100%;
 }
+
 .cmdMenu
 {
 	background: url(../images/command-menu-gradient.png) bottom left repeat-x;
 }
 
-body.palm-default {
-	background-image: url("../images/bg.png");
-	background-repeat: no-repeat;
-	background-color:rgb(237,240,255);
+#help-scene
+{
+	background-color:rgba(255,255,255,.85);
+	-webkit-border-radius:10px;
+	margin:10px;
+	padding:10px;
+	font-size:10pt;
 }
 
-.palm-row, .palm-row.first, .palm-row.last
+.help-scene .header IMG
 {
-	background-color:rgb(237,240,255);
+	float:left;
+	height:32px;
+	width:32px;
+	margin-right:10px;
+}
+
+.help-scene .header H2
+{
+	line-height:32px;
+}
+
+#list-scene .palm-row-wrapper
+{
+	padding:2px;
+}
+
+#prefs-scene .palm-row
+{
+	height:55px;
 }
 
 .palm-row.first
@@ -67,4 +94,63 @@ body.palm-default {
 	float:left;
 	display:inline;
 	width:33%;
+}
+
+#edit_contact_header
+{
+	clear:both;
+}
+
+#edit_contact_photo
+{
+    -webkit-transform:  rotate(-7deg);
+	float:left;
+	height:50px;
+	width:50px;
+	-webkit-border-radius: 10px;
+	margin:10px;
+}
+
+#edit_contact_name
+{
+	float:left;
+	width:250px;
+	line-height:60px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+
+.contact-details
+{
+	font-size:12pt;
+	text-align:right;
+	margin-right:5px;
+	float:right;
+	width:200px;
+	margin-top:15px;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}	
+
+.contact-method-row
+{
+	font-size:12pt;
+	padding:3px 3px 3px 13px;
+	height:40px;
+	clear:both;
+	line-height:32px;
+	vertical-align:middle;
+}
+
+.contact-method-row .label
+{
+	margin:auto;
+}
+
+.edit-contact-drawer
+{
+	clear:both;
+	width:94%;
+	padding:3%;
 }

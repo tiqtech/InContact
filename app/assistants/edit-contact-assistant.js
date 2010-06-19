@@ -4,11 +4,12 @@ var EditContactAssistant = Class.create(
 		this.model = model;
 	},
 	setup:function() {
-		Mojo.Log.info("> EditContactAssistant.setup");
+		//Mojo.Log.info("> EditContactAssistant.setup");
 		
 		this.setupLists();
 		
 		$('edit_contact_name').innerText = this.safeString(this.model.firstName) + " " + this.safeString(this.model.lastName);
+		$('edit_contact_photo').src = this.model.qc.smallPhoto;
 		
 		this.setupButton('saveButton', {buttonLabel:"Save",buttonClass:"affirmative"}, this.onSave);
 		this.setupButton('cancelButton', {buttonLabel:"Cancel",buttonClass:"secondary"}, this.onCancel);
@@ -24,7 +25,27 @@ var EditContactAssistant = Class.create(
 
 	},
 	onChange:function(event) {
-
+		//Mojo.Log.info("> EditContactAssistant.onChange");
+		var n = event.currentTarget;
+		var params = n.id.split("-");
+		
+		var type = params[2];
+		var id = params[3];
+		
+		// select radio button
+		$(n.id + '-radio').checked = true;
+		
+		// close drawer
+		$(type+'Drawer').mojo.setOpenState(false);
+		
+		// update display text
+		$(type+'Details').update($(n.id+'-text').innerText);
+		
+		// update selection
+		this.model.qc.selections[type] = $(n.id+'-radio').value;
+		
+		// prevent drawer from reopening
+		event.stopPropagation();
 	},
 	onDelete:function(event) {
 		//Mojo.Log.info("> EditContactAssistant.onDelete");
@@ -76,17 +97,13 @@ var EditContactAssistant = Class.create(
 
 		this.controller.stageController.popScene();
 	},
-	initAttributes:function(modelProperty) {
-		var defaultAttributes = {choices:[{label:"Auto",value:Mojo.Widget.QuickContact.SelectAuto},{label:"None",value:Mojo.Widget.QuickContact.SelectNone}]};
-		var p = Object.toJSON(defaultAttributes).evalJSON();
-		p.modelProperty = modelProperty;
-		
-		return p;
+	initAttributes:function(type) {
+		var autoEntry = {label:'', value:Mojo.Widget.QuickContact.SelectAuto, text:"Auto Select", type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectAuto) ? "CHECKED" : ""}
+		var noneEntry = {label:'', value:Mojo.Widget.QuickContact.SelectNone, text:"No Selection", type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectNone) ? "CHECKED" : ""}
+		return [autoEntry, noneEntry]; 
 	},
 	setupLists:function()
 	{
-		var phoneNumberTypes = ['H', 'W', 'O', 'M', 'C', '?', 'F'];
-		
 		var phoneAttributes = this.initAttributes("phone");
 		var smsAttributes = this.initAttributes("sms");
 		var imAttributes = this.initAttributes("im");
@@ -95,9 +112,8 @@ var EditContactAssistant = Class.create(
 		// Phone and SMS
 		if(this.model.phoneNumbers) {
 			for(var i=0;i<this.model.phoneNumbers.length;i++) {
-				var label = this.model.phoneNumbers[i].value + ' (' + phoneNumberTypes[this.model.phoneNumbers[i].label] + ')';
-				phoneAttributes.choices.push({label:label, value:this.model.phoneNumbers[i].value});
-				smsAttributes.choices.push({label:label, value:this.model.phoneNumbers[i].value});
+				phoneAttributes.push(this.getContactPointAttributes(this.model.phoneNumbers[i], "phone", true));
+				smsAttributes.push(this.getContactPointAttributes(this.model.phoneNumbers[i], "sms", true));
 			}
 		} else {
 			this.disableList(phoneAttributes);
@@ -107,8 +123,7 @@ var EditContactAssistant = Class.create(
 		// IM
 		if(this.model.imNames) {
 			for(var i=0;i<this.model.imNames.length;i++) {
-				var id = this.model.imNames[i].value + "@" + this.model.imNames[i].serviceName;
-				imAttributes.choices.push({label:id, value:this.model.imNames[i].id});
+				imAttributes.push(this.getContactPointAttributes(this.model.imNames[i], "im"));
 			}
 		} else {
 			this.disableList(imAttributes);
@@ -117,7 +132,7 @@ var EditContactAssistant = Class.create(
 		// Email
 		if(this.model.emailAddresses) {
 			for(var i=0;i<this.model.emailAddresses.length;i++) {
-				emailAttributes.choices.push({label:this.model.emailAddresses[i].value, value:this.model.emailAddresses[i].value});
+				emailAttributes.push(this.getContactPointAttributes(this.model.emailAddresses[i], "email"));
 			}
 		} else {
 			this.disableList(emailAttributes);
@@ -128,26 +143,65 @@ var EditContactAssistant = Class.create(
 		this.setupList('im', imAttributes);
 		this.setupList('email', emailAttributes);
 	},
-	setupList:function(type, attr) {
-		var m;
-		var id = type+"List";
-		if(attr.disabled) {
-			 m = {disabled:true};
-			 m[type] = Mojo.Widget.QuickContact.SelectNone;
-		} else {
-			m = this.model.qc.selections;
-			this.controller.listen($(id), Mojo.Event.propertyChange, this.onChange.bind(this));
-		}
+	getContactPointAttributes:function(cp, type, useHome) {
+		var labels = [(useHome) ? "Home" : "Personal", "Work", "Other", "Mobile", "Pager", "Personal Fax", "Work Fax", "Main", "SIM"];
 		
-		this.controller.setupWidget(id, attr, m);
+		//Mojo.Log.info([type,this.model.qc.selections[type],cp.value].join(","));
+		
+		var l = (cp.label == 2 && cp.customLabel) ? cp.customLabel : labels[cp.label];
+		return {
+			label:(cp.serviceName) ? "" : l,	// skip label when there's an icon
+			value:cp.value,
+			text:cp.value,
+			type:type,
+			checked:(this.model.qc.selections[type] == cp.value) ? "CHECKED" : "",
+			icon:(cp.serviceName) ? "images/icons/" + cp.serviceName + ".png" : ''};
+	},
+	setupList:function(type,attr) {
+		//Mojo.Log.info("> EditContactAssistant.setupList");
+		
+		this.controller.setupWidget(type+'Drawer',
+	    {
+            modelProperty: 'open',
+            unstyled: true
+        },
+        {
+            open: false
+        });
+	        	       
+	    if(attr.length > 2) {
+		    this.controller.listen($(type+'Wrapper'), Mojo.Event.tap, function() { $(type+'Drawer').mojo.toggleState(); });
+		
+			var idBase = 'contact-method-'+type+'-';
+			var content = [];
+			for(var i=0;i<attr.length;i++) {
+				attr[i].id = idBase+i;
+				
+				// if current row is checked, set display text appropriately
+				if(attr[i].checked != "") {
+					$(type+"Details").update(attr[i].text);
+				}
+				
+				// generate content for row
+				content.push(Mojo.View.render({"template":"edit-contact/contact-method-row", attributes:attr[i]}));
+		    }
+		    
+		    $(type+'Drawer').update(content.join(""));
+		    
+		    for(var i=0;i<attr.length;i++) {
+				this.controller.listen($(idBase+i), Mojo.Event.tap, this.onChange.bind(this));
+		    }
+		} else {
+			$(type+"Details").update("None Available");
+		}
 	},
 	setupButton:function(name, model, handler) {
 		this.controller.setupWidget(name, {}, model);
 		this.controller.listen($(name), Mojo.Event.tap, handler.bind(this));
 	},
 	disableList:function(attr) {
-		attr.choices.splice(0, 1);
-		attr.disabled = true;
+		//attr.choices.splice(0, 1);
+		//attr.disabled = true;
 	}
 });
 

@@ -94,7 +94,6 @@ AdMob.ad = function() {
 				onSuccess: function(response) {
 					var ad = response.responseText.evalJSON();
 					if (ad.text) {
-						Mojo.Log.info('AdMob Ad Request WIN!');
 						var div = new Element('div', {
 							className: '_AdMobAd',
 							style: armor + 'width: 312px; height: 40px; padding: 4px; background-color: ' + bg_color
@@ -128,12 +127,12 @@ AdMob.ad = function() {
 						options.onSuccess(div);
 					} else {
 						Mojo.Log.info('AdMob Ad Request FAIL - no ad received!');
-						options.onFailure();
+						options.onFailure(response);
 					}
 				},
 				onFailure: function(response) {
 					Mojo.Log.info('AdMob Ad Request FAIL - no response from server!');
-					if(options.onFailure) options.onFailure();
+					if(options.onFailure) options.onFailure(response);
 				}
 			});
 		}

@@ -3,11 +3,12 @@ var StageAssistant = Class.create(
 	setup:function()
 	{
 		this.model = null;
-		this.state = {pref:false,model:false};
+		this.showHelp = false;
+		this.state = {pref:false,model:false,version:false};
 
-		this.db = new Mojo.Depot({name:"LittleBlackBook-Contacts",version:1}, this.onCreateDb.bind(this), this.onCreateDbFailure.bind(this));
+		this.db = new Mojo.Depot({name:"InContact-Contacts",version:1}, this.onCreateDb.bind(this), this.onCreateDbFailure.bind(this));
 		
-		AdMob.ad.initialize({pub_id:"a14be4b9a87e63a",bg_color:"rgba(2,2,2,.5)",text_color:"#ffffff",test_mode:false});
+		AdMob.ad.initialize({pub_id:"a14be4b9a87e63a",bg_color:"rgba(237,240,255,.5)",text_color:"#000",test_mode:false});
 	},
 	onCreateDb:function()
 	{
@@ -24,6 +25,7 @@ var StageAssistant = Class.create(
 	{
 		//Mojo.Log.info("> StageAssistant.onPrefsReady");
 		this.state.pref = true;
+		this.checkVersion();
 		this.onReady();
 	},
 	onModelReady:function()
@@ -36,17 +38,22 @@ var StageAssistant = Class.create(
 	onReady:function()
 	{
 		//Mojo.Log.info("> StageAssistant.onReady");
-		if(this.state.model && this.state.pref) {
+		if(this.state.model && this.state.pref && this.state.version) {
 			if(this.model == null) this.model = LBB.Model.getInstance();
-			
+
 			var prefs = LBB.Preferences.getInstance();
 			var rotate = prefs.getProperty("allowRotate");		
 			this.controller.setWindowOrientation((rotate) ? "free" : "up");
+				
+			LBB.Util.loadTheme(this.controller);
 			
-			var view = prefs.getProperty("initialView");
-			this.controller.pushScene({name:view, disableSceneScroller:true});
+			if(this.showHelp) {
+				this.onShowHelp();
+			} else {
+				var view = prefs.getProperty("initialView");
+				this.onSwapScene(view);
+			}
 		}
-			
 	},
 	handleCommand:function(event)
 	{
@@ -61,6 +68,9 @@ var StageAssistant = Class.create(
 				case "scene-grid":
 					this.onSwapScene("main");
 					break;
+				case Mojo.Menu.helpCmd:
+					this.onShowHelp();
+					break;
 				case "scene-contact":
 					this.onEditContact();
 					break;
@@ -68,18 +78,37 @@ var StageAssistant = Class.create(
 					this.onAddContact();
 					break;
 			}
+		} else if(event.type == Mojo.Event.back) {
+			this.onBack();
+		}
+	},
+	onBack:function() {
+		Mojo.Log.info("<back");
+		var scenes = this.controller.getScenes();
+		// when the help scene was shown on start-up due to new version, it's the only scene on the stack
+		// if that's the case, swap the scene out with the initial view
+		if(scenes.length == 1 && scenes[0].sceneName == "help") {
+			var prefs = LBB.Preferences.getInstance();
+			var view = prefs.getProperty("initialView");
+			this.onSwapScene(view);
+			
+			event.stop();			
 		}
 	},
 	onSwapScene:function(scene)
 	{
 		// TODO: figure out why pushScene doesn't work as expected
-		if(this.controller.activeScene().sceneName != scene) {
+		if(!this.controller.activeScene() || this.controller.activeScene().sceneName != scene) {
 			this.controller.swapScene({
 				name:scene,
-				transition:Mojo.Transition.crossFade
+				transition:Mojo.Transition.crossFade,
+				disableSceneScroller:(scene == "main")
 			});
 		}
 				
+	},
+	onShowHelp:function() {
+		this.controller.pushScene("help");
 	},
 	onAddContact:function()
 	{
@@ -103,5 +132,31 @@ var StageAssistant = Class.create(
 		} catch (e) {
 			Mojo.Log.error("Unable to find a contact for selected contact.  selected might not exist.  Msg: " + e);
 		}
+	},
+	checkVersion:function() {
+		new Ajax.Request(Mojo.appPath + "/appinfo.json", {
+			method:"get",
+			onSuccess:this.onGetVersion.bind(this)
+		});
+	},
+	onGetVersion:function(xhr) {
+		Mojo.Log.info("< onGetVersion");
+		
+		// should always be 200 ...
+		if(xhr.status == 200) {
+			var prefs = LBB.Preferences.getInstance();
+			var v = prefs.getProperty("version");
+			var appInfo = eval('('+xhr.responseText+')');
+			
+			if(v != appInfo.version) {
+				this.showHelp = true
+				prefs.setProperty("version", appInfo.version);
+			}
+		} else {
+			Mojo.Log.error("Unable to retrieve version info");
+		}
+		
+		this.state.version = true;
+		this.onReady();
 	}
 });
