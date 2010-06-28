@@ -40,9 +40,7 @@ LBB.Model = Class.create({
 		
 		// * changed contact selections from data to contactPointId
 		if(version == "1.0.0") {
-			Mojo.Log.info("updating from version 1.0.0");
-			
-			version = "1.0.1";
+			version = "1.0.2";
 			for(var i=0;i<this.contacts.length;i++) {
 				var c = this.contacts[i];
 
@@ -57,7 +55,7 @@ LBB.Model = Class.create({
 		
 		this.save();
 	},
-	// needed for data model update from 1.0.0 to 1.0.1
+	// needed for data model update from 1.0.0 to 1.0.2
 	_updateEntry:function(c, type, comparator) {
 		var map = { "phone":"phoneNumbers", "sms":"phoneNumbers", "email":"emailAddresses", "im":"imNames" };
 		
