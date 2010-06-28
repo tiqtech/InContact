@@ -21,7 +21,11 @@ var PrefsAssistant = Class.create(
 		// initial view
 		this.controller.setupWidget('fieldInitialView', {choices:[{label:"Grid",value:"main"},{label:"List",value:"list"}]},this.prefs.getPropertyObject("initialView"));
 		Mojo.Event.listen($('fieldInitialView'), Mojo.Event.propertyChange, this.handleInitialViewChange.bind(this));
-				
+
+		// icon
+		this.controller.setupWidget('fieldIcon', {choices:[{label:"Default",value:"icon"},{label:"Phone",value:"phone"}]},this.prefs.getPropertyObject("icon"));
+		Mojo.Event.listen($('fieldIcon'), Mojo.Event.propertyChange, this.handleIconChange.bind(this));
+		
 		// theme
 		this.controller.setupWidget('fieldTheme', {choices:[{label:"Default",value:"default"},{label:"Blue Steel",value:"bluesteel"}, {label:"Spring",value:"spring"}]},this.prefs.getPropertyObject("theme"));
 		Mojo.Event.listen($('fieldTheme'), Mojo.Event.propertyChange, this.handleThemeChange.bind(this));
@@ -53,6 +57,10 @@ var PrefsAssistant = Class.create(
 	handleInitialViewChange:function(event)
 	{
 		this.updateProperty("initialView", event.value);
+	},
+	handleIconChange:function(event) {
+		this.updateProperty("icon", event.value);
+		LBB.Util.updateAppIcon();
 	},
 	handleThemeChange:function(event) {
 		this.updateProperty("theme", event.value);

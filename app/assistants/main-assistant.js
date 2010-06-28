@@ -1,7 +1,6 @@
 var MainAssistant = Class.create(
 {
-	initialize:function()
-	{
+	initialize:function() {
 		this.selected = null;
 		
 		this.bodyWidth = document.body.offsetWidth;
@@ -40,9 +39,6 @@ var MainAssistant = Class.create(
 		this.resizeScroller();
 	},
 	activate:function(event) {
-	
-		//Mojo.Log.info(document.body.innerHTML.substring(document.body.innerHTML.length-500));
-		
 		this.onClearSelected();
 	
 		if(event && event.personId)
@@ -63,8 +59,7 @@ var MainAssistant = Class.create(
 		
 		LBB.Util.displayAd("main_admob", this);
 	},
-	onClearSelected:function(event)
-	{
+	onClearSelected:function(event) {
 		//Mojo.Log.info("> MainAssistant.onClearSelected");
 		if(this.selected != null) this.selected.mojo.select(false);
 		
@@ -72,14 +67,10 @@ var MainAssistant = Class.create(
 		
 		this.selected = null;
 	},
-	handleModelChanged:function(contact)
-	{
-		//Mojo.Log.info("> MainAssistant.handleModelChanged");
-	
+	handleModelChanged:function(contact) {
 		LBB.Model.save();
 	},
-	pushList:function()
-	{
+	pushList:function() {
 		// pushScene keeps it within app so back gesture works as expected
 		this.controller.stageController.swapScene("list", this.getModel());
 	},
@@ -90,8 +81,7 @@ var MainAssistant = Class.create(
 		this.controller.modelChanged(this.getModel(), this);
 		this.handleModelChanged();
 	},
-	onSelect:function(event)
-	{
+	onSelect:function(event) {
 		// not calling onClearSelected to avoid menu churn by removing and adding edit item
 		if(this.selected != null) this.selected.mojo.select(false);
 		
@@ -104,8 +94,7 @@ var MainAssistant = Class.create(
 		
 		event.stopPropagation();
 	},
-	onEnableDrag:function(e)
-	{
+	onEnableDrag:function(e) {
 		//Mojo.Log.info("> MainAssistant.onEnableDrag");
 		
 		this.onClearSelected();
@@ -129,14 +118,9 @@ var MainAssistant = Class.create(
 		this.dragger = Mojo.Drag.startDragging(this.controller, e.currentTarget, e, m);
 		$('bottom_padding').style.height = "150px";
 	},
-	onDragEnd:function(position)
-	{
-		//Mojo.Log.info("> MainAssistant.onDragEnd");
-		
-		// should encapsulate most of this logic in the model
-		
+	onDragEnd:function(position) {
 		if(this.dragger == null) return;
-		
+
 		var contactId = this.dragger.element.id.split("_")[1];
 		var m = this.getModel();
 		var c = m.findContactById(contactId);
@@ -152,25 +136,19 @@ var MainAssistant = Class.create(
 				m.contacts.splice(c.index, 1);
 			} else {
 				// otherwise, insert at requested spot
+				m.contacts.splice(c.index, 1);
 				m.contacts.splice(index, 0, c.contact);
-				if(c.index < index) {
-					m.contacts.splice(c.index, 1);
-				} else {
-					m.contacts.splice(c.index+1, 1);
-				}
 			}
 			
 			LBB.Model.save();
 		}
-
+		
 		this.dropIndex = -1;
 		this.dragger = null;
-		$('bottom_padding').style.height = "50px";
 		
 		this.layoutContacts();
 	},
-	onOrientationChange:function(event)
-	{
+	onOrientationChange:function(event) {
 		// orientation changes happen whenever the device is moved
 		// only "do work" when it's moving from portrait to landscape (or vice versa)
 		if(document.body.offsetWidth != this.bodyWidth)
@@ -183,8 +161,7 @@ var MainAssistant = Class.create(
 			this.scroller.mojo.scrollTo(0,0,false);
 		}
 	},
-	resizeScroller:function()
-	{
+	resizeScroller:function() {
 		var admobHeight = (LBB.Preferences.getInstance().getProperty("disableAds")) ? 0 : 40;
 		var s = this.scroller;
 		s.style.width = window.innerWidth + "px";
@@ -209,8 +186,7 @@ var MainAssistant = Class.create(
 		
 		this.scroller.mojo.scrollTo(undefined, y, true, true);
 	},
-	initContactWidgets:function()
-	{
+	initContactWidgets:function() {
 		//Mojo.Log.info("> MainAssistant.initContactWidgets");
 		
 		var m = this.getModel();
@@ -248,8 +224,7 @@ var MainAssistant = Class.create(
 
 		this.layoutContacts();
 	},
-	layoutContacts:function(position)
-	{
+	layoutContacts:function(position, dragComplete) {
 		//Mojo.Log.info("> MainAssistant.layoutContacts");
 		
 		var contacts = this.getModel().contacts;
@@ -257,47 +232,54 @@ var MainAssistant = Class.create(
 		// set index to length so we can call this function without an arg and it will
 		// render as if no drag is in progress
 		
-		var index = contacts.length
+		var index = contacts.length;
 		if(position)
 			index = this.indexFromPosition(position);
 		
 		// if in same drop zone, kick out
 		if(index == this.dropIndex) return;
 		
-		var n=0;
-		
 		var dim = this.getLayoutDimensions();
 		var size = dim.size - (dim.padding*2);
 		
+		var foundActive = false;
 		for(var i=0;i<contacts.length;i++) {
 		
-			if(index == i) n++;
-
+		    var id = 'qc_' + contacts[i].id;
+			var o = $(id);
+			var n;
+			
+			if(i >= index && !foundActive) {
+				n = i+1;
+			} else if(i <= index && foundActive) {
+				n = i-1;
+			} else {
+				n = i;
+			}
+			
+			// don't try to reposition the element being drug
+			// and don't update the position counter (n)
+			if(this.dragger != null && o === this.dragger.element) {
+				foundActive = true;
+				continue;
+			}
+			
 		    var top = dim.padding + (Math.floor(n/dim.perRow)*dim.size) + dim.offsetTop;
 		    var left = dim.padding + ((n%dim.perRow)*dim.size) + dim.offsetLeft;
 		    
-		    var id = 'qc_' + contacts[i].id;
-			var o = $(id);
-			
-			// don't try to reposition the element being drug
-			if(this.dragger != null && o === this.dragger.element) continue;
-			
 			o.style.position = "absolute";
 		    o.style.left = left + "px";
 		    o.style.top = top + "px";
-		    //o.style.border = "2px solid red";
 		    o.style.width = size + "px";
-		    o.style.height = size + "px";
-
-		    n++;
+	    	o.style.height = size + "px";
 		}
 
+		var n = contacts.length;
 		var row = (n%dim.perRow == 0) ? n/dim.perRow : Math.floor(n/dim.perRow)+1;
 		var bottomPaddingTop = dim.padding + (row*dim.size) + dim.offsetTop;
 		$('bottom_padding').style.top = bottomPaddingTop + "px";
 	},
-	getLayoutDimensions:function()
-	{
+	getLayoutDimensions:function() {
 		var minWidth = 90;
 		var contactPadding = 5;
 		var perRow = 0;
@@ -323,60 +305,45 @@ var MainAssistant = Class.create(
 			padding:contactPadding
 		};
 	},
-	indexFromPosition:function(pos)
-	{
+	indexFromPosition:function(pos) {
 		var dim = this.getLayoutDimensions();
-		
-		var col = Math.ceil(pos.x/dim.size);
-		var row = Math.floor(pos.y/dim.size);
-		
+		var col = Math.floor(pos.x/dim.size);
+		var row = Math.floor(pos.y/dim.size);		
 		var index = (row*dim.perRow)+col;
-		
-		//Mojo.Log.info([pos.x,pos.y,row,col].join(","));
-			
 		var max = this.getModel().contacts.length;
 		
 		return (index > max) ? max : index;
 	},
-	getModel:function()
-	{
+	getModel:function() {
 		return LBB.Model.getInstance();
 	}
 });
 
 var DropTarget = Class.create( 
 {
-	initialize:function(assistant)
-	{
+	initialize:function(assistant) {
 		this.assistant = assistant;
 		this.pos = null;
 	},
-	dragEnter:function(el)
-	{
+	dragEnter:function(el) {
 		
 	},
-	dragHover:function(el)
-	{
+	dragHover:function(el) {
 		// storing last position because i can't seem to get it in dragDrop (is reset to original spot)
 		this.pos = el.cumulativeOffset();
 	
 		this.assistant.layoutContacts(this.getCenter(el));
 	},
-	dragLeave:function(el)
-	{
+	dragLeave:function(el){
 		
 	},
-	dragDrop:function(el)
-	{
-		//Mojo.Log.info("> DropTarget.dragDrop");
+	dragDrop:function(el) {
 		this.assistant.onDragEnd(this.getCenter(el));
 	},
-	dragRemove:function(el)
-	{
+	dragRemove:function(el) {
 
 	},
-	getCenter:function(el)
-	{
+	getCenter:function(el) {
 		var elDimensions = el.getDimensions();
 		var p = {
 			x: (this.pos.left + (Math.round(elDimensions.width/2))),

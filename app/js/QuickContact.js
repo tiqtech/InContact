@@ -150,8 +150,6 @@ Mojo.Widget.QuickContact = Class.create({
 		}
 	},
 	onPhone:function(event) {	
-		//Mojo.Log.info("> QuickContact.onPhone");
-		
 		var p = LBB.Preferences.getInstance();
 		
 		var param = {};
@@ -200,9 +198,11 @@ Mojo.Widget.QuickContact = Class.create({
 		event.stopPropagation();
 	},
 	onEmail:function() {
+		var email = Mojo.Widget.QuickContact.getDefaultEmail(this.controller.model);
+		Mojo.Log.info(email.value);
 		this.controller.scene.serviceRequest("palm://com.palm.applicationManager", {
 			method:"open",
-			parameters:{ target: "mailto:" + Mojo.Widget.QuickContact.getDefaultEmail(this.controller.model)}
+			parameters:{ target: "mailto:" + email.value}
 		});
 
 		event.stopPropagation();
@@ -216,26 +216,25 @@ Mojo.Widget.QuickContact.SelectNone = "QuickContact.Selection.None";
 
 Mojo.Widget.QuickContact.getDefaultEmail = function(contact) {
 	var pref = this.getPreference(contact, "email");
-	return (pref != Mojo.Widget.QuickContact.SelectAuto) ? pref : contact.emailAddresses[0].value;
+	if(pref == Mojo.Widget.QuickContact.SelectAuto) {
+		pref = contact.emailAddresses[0];
+	}
+	
+	return pref;
 };
 
 Mojo.Widget.QuickContact.getDefaultIM = function(contact) {
 	var pref = this.getPreference(contact, "im");
 	if(pref == Mojo.Widget.QuickContact.SelectAuto) {
-		return contact.imNames[0];
-	} else {
-		for(var i=0;i<contact.imNames.length;i++) {
-			var im = contact.imNames[i];
-			if(im.id == pref) {
-				return im;
-			}
-		}
+		pref = contact.imNames[0];
 	}
+
+	return pref;
 };
 
 Mojo.Widget.QuickContact.getDefaultPhone = function(contact, type) {
 	var pref = this.getPreference(contact, type);
-	if(pref == Mojo.Widget.QuickContact.SelectAuto) {
+	if(pref == this.SelectAuto) {
 		var numbers = {};
 		var pn = contact.phoneNumbers;
 		var n = pn[0];
@@ -255,21 +254,35 @@ Mojo.Widget.QuickContact.getDefaultPhone = function(contact, type) {
 			n = numbers["_0"];
 		}
 		
-		return n;
-	} else {
-		var pn = contact.phoneNumbers;
-		
-		for(var i=0;i<pn.length;i++) {
-			if(pn[i].value == pref)
-				return pn[i];
-		}
+		pref = n;
 	}
+	
+	return pref;
 };
 
 Mojo.Widget.QuickContact.getPreference = function(contact, type) {
+	var map = { "phone":"phoneNumbers", "sms":"phoneNumbers", "email":"emailAddresses", "im":"imNames" };
+	
 	// should always be true since it's initialized in initContact
 	if(contact.qc.selections) {
-		return contact.qc.selections[type];
+		var pref = contact.qc.selections[type];
+		
+		// if it's Auto or None, return that 
+		if(pref != this.SelectAuto && pref != this.SelectNone) {
+			// try to match contact.id with preference 
+			for(var i=0;i<contact[map[type]].length;i++) {
+				var item = contact[map[type]][i];
+				if(item.id == pref) {
+					return item;
+				}
+			}
+			
+			// made it here so must be an invalid pref (e.g. contact point removed)
+			// set back to auto
+			pref = this.SelectAuto;
+		}
+		
+		return pref;
 	}
 };
 

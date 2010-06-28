@@ -140,7 +140,7 @@ var StageAssistant = Class.create(
 		});
 	},
 	onGetVersion:function(xhr) {
-		Mojo.Log.info("< onGetVersion");
+		//Mojo.Log.info("< onGetVersion");
 		
 		// should always be 200 ...
 		if(xhr.status == 200) {
@@ -150,6 +150,7 @@ var StageAssistant = Class.create(
 			
 			if(v != appInfo.version) {
 				this.showHelp = true
+				LBB.Model.getInstance().update(v);
 				prefs.setProperty("version", appInfo.version);
 			}
 		} else {

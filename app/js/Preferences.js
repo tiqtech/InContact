@@ -12,7 +12,8 @@ LBB.Preferences = Class.create({
 			autoDial:{value:true,disabled:false},
 			allowRotate:{value:false,disabled:false},
 			initialView:{value:"main",disabled:false},
-			theme:{value:"default"}
+			theme:{value:"default"},
+			icon:{value:"icon"}
 		};
 	},
 	getPropertyObject:function(name)

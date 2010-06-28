@@ -82,5 +82,18 @@ LBB.Util =
 				Mojo.Log.error(ex);
 			}
 		}
+	},
+	updateAppIcon:function() {
+		var icon = LBB.Preferences.getInstance().getProperty("icon");
+		if(!icon) return;
+		
+		var iconUrl = Mojo.appPath + 'images/launcher/' + icon + '.png';
+		
+		var updateIconRequest = new Mojo.Service.Request('palm://com.palm.applicationManager', {
+    		method: 'updateLaunchPointIcon',
+    		parameters: { launchPointId: 'com.tiqtech.incontact_default', icon: iconUrl},
+			onSuccess: function(e) { Mojo.Log.info("Set icon"); },
+			onFailure: function(e) { Mojo.Log.info("Failed to set icon " + Object.toJSON(e)); }
+		});
 	}
 }

@@ -146,7 +146,7 @@ var EditContactAssistant = Class.create(
 	getContactPointAttributes:function(cp, type, useHome) {
 		var labels = [(useHome) ? "Home" : "Personal", "Work", "Other", "Mobile", "Pager", "Personal Fax", "Work Fax", "Main", "SIM"];
 		
-		//Mojo.Log.info([type,this.model.qc.selections[type],cp.value].join(","));
+		Mojo.Log.info([type,this.model.qc.selections[type],cp.value].join(","));
 		
 		var l = (cp.label == 2 && cp.customLabel) ? cp.customLabel : labels[cp.label];
 		return {
@@ -154,7 +154,7 @@ var EditContactAssistant = Class.create(
 			value:cp.value,
 			text:cp.value,
 			type:type,
-			checked:(this.model.qc.selections[type] == cp.value) ? "CHECKED" : "",
+			checked:(this.model.qc.selections[type] == cp.id) ? "CHECKED" : "",
 			icon:(cp.serviceName) ? "images/icons/" + cp.serviceName + ".png" : ''};
 	},
 	setupList:function(type,attr) {

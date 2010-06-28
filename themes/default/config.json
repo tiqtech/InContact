@@ -3,6 +3,10 @@
 	{
 		"bgcolor":"rgb(237,240,255)"
 	},
+	"contact":
+	{
+		"bordercolor":"rgb(237,240,255)"
+	},
 	"body":
 	{
 		"bgcolor":"rgb(237,240,255)",
