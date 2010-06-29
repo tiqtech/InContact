@@ -115,9 +115,6 @@ var EditContactAssistant = Class.create(
 				phoneAttributes.push(this.getContactPointAttributes(this.model.phoneNumbers[i], "phone", true));
 				smsAttributes.push(this.getContactPointAttributes(this.model.phoneNumbers[i], "sms", true));
 			}
-		} else {
-			this.disableList(phoneAttributes);
-			this.disableList(smsAttributes);
 		}
 			
 		// IM
@@ -125,8 +122,6 @@ var EditContactAssistant = Class.create(
 			for(var i=0;i<this.model.imNames.length;i++) {
 				imAttributes.push(this.getContactPointAttributes(this.model.imNames[i], "im"));
 			}
-		} else {
-			this.disableList(imAttributes);
 		}
 
 		// Email
@@ -134,8 +129,6 @@ var EditContactAssistant = Class.create(
 			for(var i=0;i<this.model.emailAddresses.length;i++) {
 				emailAttributes.push(this.getContactPointAttributes(this.model.emailAddresses[i], "email"));
 			}
-		} else {
-			this.disableList(emailAttributes);
 		}
 
 		this.setupList('phone', phoneAttributes);
@@ -146,12 +139,10 @@ var EditContactAssistant = Class.create(
 	getContactPointAttributes:function(cp, type, useHome) {
 		var labels = [(useHome) ? "Home" : "Personal", "Work", "Other", "Mobile", "Pager", "Personal Fax", "Work Fax", "Main", "SIM"];
 		
-		Mojo.Log.info([type,this.model.qc.selections[type],cp.value].join(","));
-		
 		var l = (cp.label == 2 && cp.customLabel) ? cp.customLabel : labels[cp.label];
 		return {
 			label:(cp.serviceName) ? "" : l,	// skip label when there's an icon
-			value:cp.value,
+			value:cp.id,
 			text:cp.value,
 			type:type,
 			checked:(this.model.qc.selections[type] == cp.id) ? "CHECKED" : "",
@@ -198,10 +189,6 @@ var EditContactAssistant = Class.create(
 	setupButton:function(name, model, handler) {
 		this.controller.setupWidget(name, {}, model);
 		this.controller.listen($(name), Mojo.Event.tap, handler.bind(this));
-	},
-	disableList:function(attr) {
-		//attr.choices.splice(0, 1);
-		//attr.disabled = true;
 	}
 });
 

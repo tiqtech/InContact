@@ -83,7 +83,6 @@ var StageAssistant = Class.create(
 		}
 	},
 	onBack:function() {
-		Mojo.Log.info("<back");
 		var scenes = this.controller.getScenes();
 		// when the help scene was shown on start-up due to new version, it's the only scene on the stack
 		// if that's the case, swap the scene out with the initial view
