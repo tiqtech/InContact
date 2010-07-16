@@ -1,6 +1,7 @@
 LBB.Preferences = Class.create({
 	initialize:function()
 	{
+		this.loaded = false;
 		this.readOnlyProperties = 
 		{
 			disableAds:{value:false},
@@ -13,7 +14,9 @@ LBB.Preferences = Class.create({
 			allowRotate:{value:false,disabled:false},
 			initialView:{value:"main",disabled:false},
 			theme:{value:"default"},
-			icon:{value:"icon"}
+			icon:{value:"icon"},
+			namePosition:{value:"top"},
+			contactSize:{value:"normal"}
 		};
 	},
 	getPropertyObject:function(name)
@@ -37,6 +40,9 @@ LBB.Preferences = Class.create({
 		
 		this.properties[name].value = value;
 		LBB.Preferences.save();
+	},
+	isLoaded:function() {
+		return this.loaded;
 	}
 });
 
@@ -57,11 +63,13 @@ LBB.Preferences.load = function(db, callback)
 			for(var k in m) {
 				this._instance.properties[k] = m[k];
 			}
-				
+			
 			// copy read-only properties
 			for(var k in this._instance.readOnlyProperties) {
 				this._instance.properties[k] = this._instance.readOnlyProperties[k];
 			}
+			
+			this._instance.loaded = true;
 				
 			callback();
 		}.bind(this), 

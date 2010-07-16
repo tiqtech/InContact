@@ -1,10 +1,17 @@
 var ListAssistant = Class.create(
 {
-	initialize:function() {
+	initialize:function(model, prefs) {
+	
+		LBB.Model = model;
+		LBB.Preferences = prefs;
+		
 		this.selected = null;
 		this.contactModel = LBB.Model.getInstance();
+		this.handlers = new HandlerManager(this, ["onReorder","onDelete","onSelect","handleModelChanged"]);
 	},
 	setup:function() {
+
+		LBB.Util.loadTheme(this.controller);
 
 		this.controller.setupWidget("list",
 			{
@@ -13,7 +20,7 @@ var ListAssistant = Class.create(
 				reorderable: true,
 				emptyTemplate:"list/empty-template",
 				itemsCallback:this.loadContacts.bind(this),
-				listTitle: "Contacts",
+				listTitle: $L("Contacts"),
 				fixedHeightItems: true
 			},
 			{}
@@ -23,12 +30,21 @@ var ListAssistant = Class.create(
 		
 		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.appMenuModel);
 
-		this.controller.listen($('list'), Mojo.Event.listReorder, this.onReorder.bind(this));
-		this.controller.listen($('list'), Mojo.Event.listDelete, this.onDelete.bind(this));
-		this.controller.listen($('list'), Mojo.Event.listTap, this.onSelect.bind(this));
-		this.controller.watchModel(this.contactModel, this, this.handleModelChanged.bind(this));
+		this.controller.listen($('list'), Mojo.Event.listReorder, this.handlers.onReorder);
+		this.controller.listen($('list'), Mojo.Event.listDelete, this.handlers.onDelete);
+		this.controller.listen($('list'), Mojo.Event.listTap, this.handlers.onSelect);
+		this.controller.watchModel(this.contactModel, this, this.handlers.handleModelChanged);
 		
+		$('list_admob').insert($L('Loading advertisement'));
+		$('list-no-contacts').insert($L('No Contacts'));
 		//Mojo.Log.info("< ListAssistant.setup");
+	},
+	cleanup:function() {
+	
+		this.controller.listen($('list'), Mojo.Event.listReorder, this.handlers.onReorder);
+		this.controller.listen($('list'), Mojo.Event.listDelete, this.handlers.onDelete);
+		this.controller.listen($('list'), Mojo.Event.listTap, this.handlers.onSelect);
+		this.controller.watchModel(this.contactModel, this, this.handlers.handleModelChanged);
 	},
 	activate:function(event) {
 		if(event && event.personId)
@@ -49,11 +65,11 @@ var ListAssistant = Class.create(
 		//Mojo.Log.info("> ListAssistant.loadContacts");
 		
 		var c = [];
-		for(var i=offset;i<(count+offset) && i<this.contactModel.contacts.length;i++)
+		for(var i=offset;i<(count+offset) && i<this.contactModel.getContacts().length;i++)
 		{
-			var id = "ql_" + this.contactModel.contacts[i].id
-			c.push(this.contactModel.contacts[i]);
-			this.controller.setupWidget(id, {container:'list'}, this.contactModel.contacts[i]);
+			var id = "ql_" + this.contactModel.getContacts()[i].id
+			c.push(this.contactModel.getContacts()[i]);
+			this.controller.setupWidget(id, {container:'list'}, this.contactModel.getContacts()[i]);
 		}
 		
 		widget.mojo.noticeAddedItems(offset, c);
@@ -62,8 +78,8 @@ var ListAssistant = Class.create(
 	{
 		//Mojo.Log.info("> ListAssistant.onReorder");
 		
-		this.contactModel.contacts.splice(event.fromIndex, 1);
-		this.contactModel.contacts.splice(event.toIndex, 0, event.item);
+		this.contactModel.getContacts().splice(event.fromIndex, 1);
+		this.contactModel.getContacts().splice(event.toIndex, 0, event.item);
 		this.markModified();
 	},
 	onDelete:function(event)
@@ -86,8 +102,8 @@ var ListAssistant = Class.create(
 	},
 	onContactSelected:function(contact)
 	{
-		this.contactModel.contacts.push(contact);
-		this.loadContacts($("list"), this.contactModel.contacts.length-1, 1)
+		this.contactModel.getContacts().push(contact);
+		this.loadContacts($("list"), this.contactModel.getContacts().length-1, 1)
 		
 		this.markModified();
 	},

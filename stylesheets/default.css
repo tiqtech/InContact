@@ -1,3 +1,18 @@
+/*** Default Theme CSS ***/
+
+body.palm-default {
+	background-image: url("themes/default/bg.png");
+	background-repeat: no-repeat;
+	background-color:rgb(237,240,255);
+}
+
+.palm-row, .palm-row.first, .palm-row.last
+{
+	background-color:rgb(237,240,255);
+}
+
+/*** End Default Theme CSS ***/
+
 .admob
 {
 	height:45px;
@@ -16,7 +31,7 @@
 	z-index:10000;
 }
 
-#bottom_padding
+.scroller-padding.bottom
 {
 	position:absolute;
 	left:0px;
@@ -69,14 +84,32 @@
 	line-height:32px;
 }
 
-#list-scene .palm-row-wrapper
+.list-scene .palm-row-wrapper
 {
 	padding:2px;
 }
 
-#prefs-scene .palm-row
+.prefs-scene .palm-row
 {
 	height:55px;
+}
+
+.prefs-scene .label.left
+{
+	float:left;
+	width:130px;
+	margin-left:0px;
+	padding-left:10px;
+}
+
+.prefs-scene .list
+{
+	float:right;
+	width:140px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+	text-align:right;
 }
 
 .palm-row.first
@@ -89,19 +122,12 @@
 	-webkit-border-radius: 0px 0px 15px 15px ;
 }
 
-.actionButton
-{
-	float:left;
-	display:inline;
-	width:33%;
-}
-
-#edit_contact_header
+.edit-contact-scene .header
 {
 	clear:both;
 }
 
-#edit_contact_photo
+.edit-contact-scene #edit_contact_photo
 {
     -webkit-transform:  rotate(-7deg);
 	float:left;
@@ -111,7 +137,7 @@
 	margin:10px;
 }
 
-#edit_contact_name
+.edit-contact-scene #edit_contact_name
 {
 	float:left;
 	width:250px;
@@ -121,19 +147,26 @@
 	white-space:nowrap;
 }
 
-.contact-details
+.edit-contact-scene .palm-row .label
+{
+	width:40%;
+	float:left;
+}
+
+.edit-contact-scene .contact-details
 {
 	font-size:12pt;
 	text-align:right;
-	margin-right:5px;
+	margin-right:2%;
 	float:right;
-	width:200px;
+	width:50%;
 	margin-top:15px;
 	text-overflow:ellipsis;
 	white-space:nowrap;
+	overflow: hidden;
 }	
 
-.contact-method-row
+.edit-contact-scene .contact-method-row
 {
 	font-size:12pt;
 	padding:3px 3px 3px 13px;
@@ -143,14 +176,35 @@
 	vertical-align:middle;
 }
 
-.contact-method-row .label
+.edit-contact-scene .contact-method-row .method-details
 {
-	margin:auto;
+	width:auto;
 }
 
-.edit-contact-drawer
+.edit-contact-scene .contact-method-row .label
+{
+	width:auto;
+	margin:auto;
+	float:right;
+	text-align:right;
+}
+
+.edit-contact-scene .edit-contact-drawer
 {
 	clear:both;
 	width:94%;
 	padding:3%;
+}
+
+.edit-contact-scene .actionButton
+{
+	float:left;
+	display:inline;
+	width:33%;
+}
+
+/* setting font size to account for internationalization */ 
+.edit-contact-scene .actionButton .palm-button-wrapper
+{
+	font-size:12pt;
 }

@@ -6,6 +6,7 @@ Mojo.Widget.QuickContact = Class.create({
 			"container":"grid",
 			"selected":false
 		};
+		this.handlers = new HandlerManager(this, ["onPhone", "onEmail", "onTxt", "onIM"])
 	},
 	setup:function() {
 		//Mojo.Log.info("> QuickContact.setup");
@@ -29,13 +30,23 @@ Mojo.Widget.QuickContact = Class.create({
 			this.loadContactPhoto();
 		}
 		
-		Mojo.Event.listen($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.onPhone.bind(this), true);
-		Mojo.Event.listen($(this.controller.element.id + "_email"), Mojo.Event.tap, this.onEmail.bind(this), true);
-		Mojo.Event.listen($(this.controller.element.id + "_txt"), Mojo.Event.tap, this.onTxt.bind(this), true);
-		Mojo.Event.listen($(this.controller.element.id + "_im"), Mojo.Event.tap, this.onIM.bind(this), true);
+		Mojo.Event.listen($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.handlers.onPhone, true);
+		Mojo.Event.listen($(this.controller.element.id + "_email"), Mojo.Event.tap, this.handlers.onEmail, true);
+		Mojo.Event.listen($(this.controller.element.id + "_txt"), Mojo.Event.tap, this.handlers.onTxt, true);
+		Mojo.Event.listen($(this.controller.element.id + "_im"), Mojo.Event.tap, this.handlers.onIM, true);
 		
 		this.controller.exposeMethods(["select", "render"]);
 		this.render();
+	},
+	cleanup:function() {
+		//Mojo.Log.info("> QuickContact.cleanup");
+		
+		Mojo.Event.stopListening($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.handlers.onPhone, true);
+		Mojo.Event.stopListening($(this.controller.element.id + "_email"), Mojo.Event.tap, this.handlers.onEmail, true);
+		Mojo.Event.stopListening($(this.controller.element.id + "_txt"), Mojo.Event.tap, this.handlers.onTxt, true);
+		Mojo.Event.stopListening($(this.controller.element.id + "_im"), Mojo.Event.tap, this.handlers.onIM, true);
+		
+		this.handlers.release();
 	},
 	render:function() {
 		try {
@@ -51,6 +62,7 @@ Mojo.Widget.QuickContact = Class.create({
 	},
 	displayIcons:function() {
 		//Mojo.Log.info("> QuickContact.displayIcons");
+		Mojo.Timing.resume("QuickContact#displayIcons");
 		
 		// utility function to set active/inactive for button
 		var swap = function(id, type, obj) {
@@ -67,6 +79,7 @@ Mojo.Widget.QuickContact = Class.create({
 		swap(this.attributes.id + "_txt", "sms", this.controller.model.phoneNumbers);
 		swap(this.attributes.id + "_im", "im", this.controller.model.imNames);
 		
+		Mojo.Timing.pause("QuickContact#displayIcons");
 		//Mojo.Log.info("< QuickContact.displayIcons");
 	},
 	initContact:function() {

@@ -2,18 +2,30 @@ var EditContactAssistant = Class.create(
 {
 	initialize:function(model) {
 		this.model = model;
+		this.handlers = new HandlerManager(this, ["onSave","onCancel","onDelete","onChange"]);
 	},
 	setup:function() {
 		//Mojo.Log.info("> EditContactAssistant.setup");
 		
 		this.setupLists();
 		
+		// Setup Labels
+		$('phoneLabel').insert($L('Phone'));
+		$('imLabel').insert($L('IM'));
+		$('emailLabel').insert($L('Email'));
+		$('smsLabel').insert($L('SMS'));
+		
 		$('edit_contact_name').innerText = this.safeString(this.model.firstName) + " " + this.safeString(this.model.lastName);
 		$('edit_contact_photo').src = this.model.qc.smallPhoto;
 		
-		this.setupButton('saveButton', {buttonLabel:"Save",buttonClass:"affirmative"}, this.onSave);
-		this.setupButton('cancelButton', {buttonLabel:"Cancel",buttonClass:"secondary"}, this.onCancel);
-		this.setupButton('deleteButton', {buttonLabel:"Delete",buttonClass:"negative"}, this.onDelete);
+		this.setupButton('saveButton', {buttonLabel:$L("Save"),buttonClass:"affirmative"}, this.handlers.onSave);
+		this.setupButton('cancelButton', {buttonLabel:$L("Cancel"),buttonClass:"secondary"}, this.handlers.onCancel);
+		this.setupButton('deleteButton', {buttonLabel:$L("Delete"),buttonClass:"negative"}, this.handlers.onDelete);
+	},
+	cleanup:function() {
+		this.controller.stopListening($('saveButton'), Mojo.Event.tap, this.handlers.onSave);
+		this.controller.stopListening($('cancelButton'), Mojo.Event.tap, this.handlers.onCancel);
+		this.controller.stopListening($('deleteButton'), Mojo.Event.tap, this.handlers.onDelete);
 	},
 	safeString:function(s) {
 		return (s) ? s : "";
@@ -98,8 +110,8 @@ var EditContactAssistant = Class.create(
 		this.controller.stageController.popScene();
 	},
 	initAttributes:function(type) {
-		var autoEntry = {label:'', value:Mojo.Widget.QuickContact.SelectAuto, text:"Auto Select", type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectAuto) ? "CHECKED" : ""}
-		var noneEntry = {label:'', value:Mojo.Widget.QuickContact.SelectNone, text:"No Selection", type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectNone) ? "CHECKED" : ""}
+		var autoEntry = {label:'', value:Mojo.Widget.QuickContact.SelectAuto, text:$L("Auto Select"), type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectAuto) ? "CHECKED" : ""}
+		var noneEntry = {label:'', value:Mojo.Widget.QuickContact.SelectNone, text:$L("No Selection"), type:type, icon:'',checked:(this.model.qc.selections[type] == Mojo.Widget.QuickContact.SelectNone) ? "CHECKED" : ""}
 		return [autoEntry, noneEntry]; 
 	},
 	setupLists:function()
@@ -137,7 +149,7 @@ var EditContactAssistant = Class.create(
 		this.setupList('email', emailAttributes);
 	},
 	getContactPointAttributes:function(cp, type, useHome) {
-		var labels = [(useHome) ? "Home" : "Personal", "Work", "Other", "Mobile", "Pager", "Personal Fax", "Work Fax", "Main", "SIM"];
+		var labels = [(useHome) ? $L("Home") : $L("Personal"), $L("Work"), $L("Other"), $L("Mobile"), $L("Pager"), $L("Personal Fax"), $L("Work Fax"), $L("Main"), $L("SIM")];
 		
 		var l = (cp.label == 2 && cp.customLabel) ? cp.customLabel : labels[cp.label];
 		return {
@@ -161,6 +173,7 @@ var EditContactAssistant = Class.create(
         });
 	        	       
 	    if(attr.length > 2) {
+	    	// TODO: refactor this to use a declared function instead of anonymous function so it can be "un
 		    this.controller.listen($(type+'Wrapper'), Mojo.Event.tap, function() { $(type+'Drawer').mojo.toggleState(); });
 		
 			var idBase = 'contact-method-'+type+'-';
@@ -180,15 +193,16 @@ var EditContactAssistant = Class.create(
 		    $(type+'Drawer').update(content.join(""));
 		    
 		    for(var i=0;i<attr.length;i++) {
-				this.controller.listen($(idBase+i), Mojo.Event.tap, this.onChange.bind(this));
+		    	// TODO: determine way to "unlisten" these as well
+				this.controller.listen($(idBase+i), Mojo.Event.tap, this.handlers.onChange);
 		    }
 		} else {
-			$(type+"Details").update("None Available");
+			$(type+"Details").update($L("None Available"));
 		}
 	},
 	setupButton:function(name, model, handler) {
 		this.controller.setupWidget(name, {}, model);
-		this.controller.listen($(name), Mojo.Event.tap, handler.bind(this));
+		this.controller.listen($(name), Mojo.Event.tap, handler);
 	}
 });
 

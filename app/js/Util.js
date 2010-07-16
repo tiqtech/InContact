@@ -10,7 +10,7 @@ LBB.Util =
 	        {	items:
 	        	[
 	        		{label: $L('List'), icon:'list_icon', command:'scene-list'},
-	        		{label: $L('List'), icon:'grid_icon', command:'scene-grid'}
+	        		{label: $L('Grid'), icon:'grid_icon', command:'scene-grid'}
 	        	],
 	        	toggleCmd:'scene-grid'
 	        },
@@ -92,8 +92,8 @@ LBB.Util =
 		var updateIconRequest = new Mojo.Service.Request('palm://com.palm.applicationManager', {
     		method: 'updateLaunchPointIcon',
     		parameters: { launchPointId: 'com.tiqtech.incontact_default', icon: iconUrl},
-			onSuccess: function(e) { Mojo.Log.info("Set icon"); },
-			onFailure: function(e) { Mojo.Log.info("Failed to set icon " + Object.toJSON(e)); }
+			onSuccess: function(e) { },
+			onFailure: function(e) { Mojo.Log.info("Failed to set icon",Object.toJSON(e)); }
 		});
 	}
 }
