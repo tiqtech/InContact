@@ -1,7 +1,6 @@
 [
 	{"source": "app/js/HandlerManager.js"},
 	{"source": "app/js/AsyncFunction.js"},
-    {"source": "app/js/admob.js"},
     {"source": "app/js/LBB.js"},
     {"source": "app/js/Model.js"},
     {"source": "app/js/Preferences.js"},

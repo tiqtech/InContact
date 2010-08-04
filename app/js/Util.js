@@ -1,55 +1,53 @@
 LBB.Util =
 {
-	appMenuModel:{items: [Mojo.Menu.editItem,{label: $L("Preferences"),command: Mojo.Menu.prefsCmd}, {label: $L("Help"),command: Mojo.Menu.helpCmd}]},
-	cmdMenuModel:
-	{
+	appMenuModel: {items:[]},
+	cmdMenuModel: {
 	    visible: true,
 	    items: [
-	        {label: $L('Add'), icon:'add_icon', command:'add'},
-	        {},
-	        {	items:
-	        	[
-	        		{label: $L('List'), icon:'list_icon', command:'scene-list'},
-	        		{label: $L('Grid'), icon:'grid_icon', command:'scene-grid'}
-	        	],
-	        	toggleCmd:'scene-grid'
-	        },
-			{},
-			{label:$L('Edit'), disabled:true, command:'scene-contact'}
+       		//{label: $L('Add'), icon:"add_icon", command:'add'},
+       		{},
+       		{ items: [
+       			{label: $L('Phone'), icon:'phone-icon', command:'launch-phone'},
+       			{label: $L('Email'), icon:'email-icon', command:'launch-email'},
+       			{label: $L('Messaging'), icon:'messaging-icon', command:'launch-messaging'},
+       			{label: $L('Contacts'), icon:'contacts-icon', command:'launch-contacts'}
+       			]
+       		},
+       		{}
+       		//{label: $L('Edit'), command:'scene-contact'}
 	    ]
 	},
-	setupCommandMenu:function(controller, scene)
-	{
+	getAppMenuModel:function(scene) {
+		var i = this.appMenuModel.items;
+		
+		i.clear();
+		i.push(Mojo.Menu.editItem);
+		if(scene == "grid") {
+			var currentMode = Mojo.Controller.getAppController().assistant.settings.mode;
+			var mode, label;
+			if(currentMode == "normal") {
+				label = $L("Driving Mode");
+				mode = "driving";
+			} else {
+				label = $L("Normal Mode");
+				mode = "normal";
+			}
+			
+			i.push({label: label,  shortcut:'m', command:"mode-"+mode});
+		}
+		
+		i.push({label: $L("Preferences"),command: Mojo.Menu.prefsCmd});
+		i.push({label: $L("Help"),command: Mojo.Menu.helpCmd});
+		
+		return this.appMenuModel;
+	},
+	setupCommandMenu:function(controller, scene) {
 		//Mojo.Log.info("setupCommandMenu");
 				
 		this.cmdMenuModel.items[2].toggleCmd = 'scene-' + scene;
 			
 		controller.setupWidget(Mojo.Menu.commandMenu, {}, this.cmdMenuModel);
 		controller.watchModel(this.cmdMenuModel);
-	},
-	enableEditMenu:function(controller, enabled)
-	{
-		this.cmdMenuModel.items[this.cmdMenuModel.items.length-1].disabled = !enabled;
-		controller.modelChanged(this.cmdMenuModel);
-	},
-	displayAd:function(targetId, source)
-	{
-		var disabled = LBB.Preferences.getInstance().getProperty("disableAds");
-		if(disabled) {
-			$(targetId).style.display = "none";
-		} else {
-			$(targetId).style.display = "block";
-			AdMob.ad.request(
-			{
-				onSuccess:(function(ad){
-					this.controller.get(targetId).update(ad);
-					setTimeout(function() { LBB.Util.displayAd(targetId, source); }, 300000);	// new add ever 5 minutes
-				}).bind(source),
-				onFailure:function(msg) {
-					setTimeout(function() { LBB.Util.displayAd(targetId, source); }, 30000);	// retry after 30 seconds
-				}
-			});
-		}
 	},
 	loadTheme:function(controller) {
 		var prefs = LBB.Preferences.getInstance();

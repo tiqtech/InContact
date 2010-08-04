@@ -24,11 +24,11 @@ Mojo.Widget.QuickContact = Class.create({
 		var content = Mojo.View.render({"template":"QuickContact/"+this.attributes.container, attributes:this.attributes, object:this.controller.model});
 		this.controller.element.innerHTML = content;
 		
-		if(prefs.getProperty("asyncPhoto")) {
-			this.loadContactPhoto.async(this);
-		} else {
+		//if(prefs.getProperty("asyncPhoto")) {
+		//	this.loadContactPhoto.async(this);
+		//} else {
 			this.loadContactPhoto();
-		}
+		//}
 		
 		Mojo.Event.listen($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.handlers.onPhone, true);
 		Mojo.Event.listen($(this.controller.element.id + "_email"), Mojo.Event.tap, this.handlers.onEmail, true);
@@ -62,7 +62,6 @@ Mojo.Widget.QuickContact = Class.create({
 	},
 	displayIcons:function() {
 		//Mojo.Log.info("> QuickContact.displayIcons");
-		Mojo.Timing.resume("QuickContact#displayIcons");
 		
 		// utility function to set active/inactive for button
 		var swap = function(id, type, obj) {
@@ -79,7 +78,6 @@ Mojo.Widget.QuickContact = Class.create({
 		swap(this.attributes.id + "_txt", "sms", this.controller.model.phoneNumbers);
 		swap(this.attributes.id + "_im", "im", this.controller.model.imNames);
 		
-		Mojo.Timing.pause("QuickContact#displayIcons");
 		//Mojo.Log.info("< QuickContact.displayIcons");
 	},
 	initContact:function() {
@@ -107,10 +105,51 @@ Mojo.Widget.QuickContact = Class.create({
 	loadContactPhoto:function() {
 		//Mojo.Log.info("> QuickContact.loadContactPhoto");
 		
+		var c = this.controller.model;
+		this.getDimensions(c);
+			
+		// resize only applies to grid mode
+		if(this.attributes.container == "grid") {
+
+			var main = $(this.attributes.id + "_main");
+			var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding*2)
+			
+			// calc ratio of photo height/width to size of QC			
+			var wRatio = c.qc.photoDimensions.w/size;
+			var hRatio = c.qc.photoDimensions.h/size;
+			
+			var scale = {w:"auto",h:"auto"};
+			var pos = {left:"0%",top:"0%"};
+			
+			if(wRatio > hRatio) {
+				scale.h = "100%";
+				pos.left = Math.round((wRatio/hRatio)*50) + "%";
+			} else {
+				scale.w = "100%";
+				pos.top = Math.round((hRatio/wRatio)*50) + "%";
+			}
+			
+			if(c.qc.largePhoto == this.defaultPhoto) {
+				c.qc.largePhoto = Mojo.appPath.substring(7) + this.defaultPhoto;
+			}
+			
+			var photoSize = (size*2);
+			var photo = "/var/luna/data/extractfs" + encodeURIComponent(c.qc.largePhoto) + ":0:0:"+photoSize+":"+photoSize+":3";
+			main.style.cssText += "background:url('" + photo + "');-webkit-background-size:" + scale.w + " " + scale.h + ";background-position:center center;background-repeat:no-repeat;";
+		} else { // list view
+			$(this.attributes.id + "_img").setAttribute('src', c.qc.smallPhoto);
+		}
+		
+		//Mojo.Log.info("< QuickContact.loadContactPhoto");
+	},
+	getDimensions:function(c) {
+		
+		// TODO: leaving this check out for now until i find a better way to check for missing pictures
+		//if(c.qc.photoDimensions.h && c.qc.photoDimensions.w) return;
+		
 		var img = new Element('img', {'style':'position:absolute;visibility:hidden;z-index:-10000'});
 		$(this.attributes.id).insert(img);
 		
-		var c = this.controller.model;
 		
 		// if photos haven't been initialized, do so
 		if(c.qc.largePhoto == null) {
@@ -132,35 +171,6 @@ Mojo.Widget.QuickContact = Class.create({
 		
 		// no longer needed once size determined
 		img.remove();
-		
-		// resize only applies to grid mode
-		if(this.attributes.container == "grid") {
-		
-			// set high-res photo
-			img.setAttribute('src', c.qc.largePhoto);
-			
-			var main = $(this.attributes.id + "_main");
-			var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding*2)
-
-			// calc ratio of photo height/width to size of QC			
-			var wRatio = c.qc.photoDimensions.w/size;
-			var hRatio = c.qc.photoDimensions.h/size;
-			
-			var scale = {w:"auto",h:"auto"};
-			var pos = {left:"0%",top:"0%"};
-			
-			if(wRatio > hRatio) {
-				scale.h = "100%";
-				pos.left = Math.round((wRatio/hRatio)*50) + "%";
-			} else {
-				scale.w = "100%";
-				pos.top = Math.round((hRatio/wRatio)*50) + "%";
-			}
-			
-			main.style.cssText += "background:url('" + c.qc.largePhoto + "');-webkit-background-size:" + scale.w + " " + scale.h + ";background-position:" + pos.left + " " + pos.top + ";";
-		} else { // list view
-			$(this.attributes.id + "_img").setAttribute('src', c.qc.smallPhoto);
-		}
 	},
 	onPhone:function(event) {	
 		var p = LBB.Preferences.getInstance();
@@ -176,49 +186,69 @@ Mojo.Widget.QuickContact = Class.create({
 		    }
 		});
 		
-		event.stopPropagation();
+		this.actionComplete(event, "phone");
 	},
-	onTxt:function() {
+	onTxt:function(event) {
 	    var p = Mojo.Widget.QuickContact.getDefaultPhone(this.controller.model, "sms");
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
 		     method: 'launch',
 		     parameters: {
 		     	id: "com.palm.app.messaging",
 		     	params: {
-					personId: this.controller.model.id,
-					contactPointId: p.id,
-					address:p.value
+		          	composeRecipients: [{
+						address: p.value
+					}]
+					/* contact point method */
+					//personId: this.controller.model.id,
+					//contactPointId: p.id,
+					//address:p.value
 				}
 		     }
 		});
+		
+		this.actionComplete(event, "sms");
 	},
-	onIM:function() {
+	onIM:function(event) {
 		var im = Mojo.Widget.QuickContact.getDefaultIM(this.controller.model);
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
 		     method: 'launch',
 		     parameters: {
 		         id: 'com.palm.app.messaging',
 		         params: {
-					personId: this.controller.model.id,
-					contactPointId: im.id,
-					address:im.value,
-					type:'im',
-					serviceName: im.serviceName
+		         	composeRecipients: [{
+						address: im.value,
+						serviceName: im.serviceName
+					}]
+					/* contact point method */
+					//personId: this.controller.model.id,
+					//contactPointId: im.id,
+					//address:im.value,
+					//type:'im',
+					//serviceName: im.serviceName
 		         }
 		     }
 		});
 		
-		event.stopPropagation();
+		this.actionComplete(event, "im");
 	},
-	onEmail:function() {
+	onEmail:function(event) {
 		var email = Mojo.Widget.QuickContact.getDefaultEmail(this.controller.model);
-		Mojo.Log.info(email.value);
+
 		this.controller.scene.serviceRequest("palm://com.palm.applicationManager", {
 			method:"open",
 			parameters:{ target: "mailto:" + email.value}
 		});
 
+		this.actionComplete(event, "email");
+	},
+	actionComplete:function(event, action) {
+		var closeAction = LBB.Preferences.getInstance().getProperty("closeAction");
+		
 		event.stopPropagation();
+		
+		if(closeAction == "any" || closeAction == action) {
+			window.close();
+		}
 	}
 });
 

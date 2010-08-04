@@ -8,15 +8,30 @@ LBB.Page = Class.create({
 	},
 	getTitle:function() {
 		return this.title;
-	}
+	},
+	findContactById:function(id) {
+		var c = {contact:null,index:-1};
+		
+		for(var i=0;i<this.contacts.length;i++) {
+			if(this.contacts[i].id == id) {
+				c.contact = this.contacts[i];
+				c.index=i;
+				
+				break;
+			}
+		}
+		
+		return c;
+	},
 });
 
 LBB.Model = Class.create({
 	initialize:function() {
 		this.loaded = false;
 		this.modified = false;
-		this.pages = [new LBB.Page()];
+		this.pages = [new LBB.Page("My Contacts")]; //IC+ [new LBB.Page("Friends"), new LBB.Page("Family"), new LBB.Page("Work")];
 	},
+	// TODO: should be safe to remove.  need to verify
 	findContactById:function(id) {
 		var c = {contact:null,index:-1};
 		
@@ -41,12 +56,19 @@ LBB.Model = Class.create({
 		
 		return this.pages[page].contacts;
 	},
+	getPage:function(page) {
+		return this.pages[page];
+	},
+	getPages:function() {
+		return this.pages;
+	},
 	remove:function(contact) {
 		var id = (typeof(contact) == "object") ? contact.id : contact;
 		
 		var c = this.findContactById(id);
-		if(c.index != -1)
+		if(c.index != -1) {
 			this.pages[c.page].contacts.splice(c.index, 1);
+		}
 	},
 	save:function() {
 		LBB.Model.save();
@@ -120,7 +142,20 @@ LBB.Model.load = function(db, callback)
 		function(m) {
 			this._instance = new LBB.Model();
 			for(var k in m) {
-				this._instance[k] = m[k];
+				// have to do some custom processing because pages contains custom objects
+				// without this, i'd have access to data but not methods since they aren't serialized
+				if(k == "pages") {
+					var pages = m[k];
+					this._instance[k] = [];
+					for(var i=0;i<pages.length;i++) {
+						this._instance[k].push(new LBB.Page());
+						for(var prop in pages[i]) {
+							this._instance[k][i][prop] = pages[i][prop];
+						}
+					}
+				} else {
+					this._instance[k] = m[k];
+				}
 			}
 			
 			this.loaded = true;

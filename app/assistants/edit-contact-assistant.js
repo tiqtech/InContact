@@ -26,6 +26,8 @@ var EditContactAssistant = Class.create(
 		this.controller.stopListening($('saveButton'), Mojo.Event.tap, this.handlers.onSave);
 		this.controller.stopListening($('cancelButton'), Mojo.Event.tap, this.handlers.onCancel);
 		this.controller.stopListening($('deleteButton'), Mojo.Event.tap, this.handlers.onDelete);
+		
+		this.handlers.release();
 	},
 	safeString:function(s) {
 		return (s) ? s : "";

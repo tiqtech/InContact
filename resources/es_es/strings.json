@@ -4,8 +4,12 @@
 	"Select a Contact":"Selecciona un Contacto",
 	
 	// Menus
+	"Driving Mode":"Modo de Conducción",
+	"Normal Mode":"Modo Normal",
 	"Preferences":"Preferencias",
 	"Help":"Ayuda",
+	"Add":"Añadir",
+	"Remove":"Borrar",
 	"Edit":"Editar",
 	
 	// List
@@ -51,5 +55,9 @@
 	"Spring":"Primavera",
 	"Start Up View":"Vista de Inicio",
 	"Grid":"Cuadricula",
-	"List":"Lista"
+	"List":"Lista",
+	"Close on Action":"Cerrar Después de la Acción",
+	"None":"Ninguno",
+	"Dial":"Marcar",
+	"Any":"Cualquier"
 }

@@ -1,4 +1,4 @@
-/*** Default Theme CSS ***/
+/** Default Theme CSS **/
 
 body.palm-default {
 	background-image: url("themes/default/bg.png");
@@ -11,24 +11,38 @@ body.palm-default {
 	background-color:rgb(237,240,255);
 }
 
-/*** End Default Theme CSS ***/
+/** General **/
 
-.admob
+.palm-row.first
 {
-	height:45px;
-	font-size:10pt;
-	line-height:45px;
-	text-align:center;
-	display:none;
-	background-color:rgba(255,255,255,.5);
-	color:#000;
-	overflow:hidden;
+	-webkit-border-radius: 15px 15px 0px 0px;
 }
+
+.palm-row.last
+{
+	-webkit-border-radius: 0px 0px 15px 15px ;
+}
+
+/** Main Scene **/
 
 .dragging
 {
 	opacity:.5;
 	z-index:10000;
+}
+
+.ContactScroller
+{
+	float:left;
+	-webkit-border-radius:20px;
+	background-color:rgba(255,255,255,.3);
+	margin:3px;
+}
+
+.ContactScroller .scroll-wrapper
+{
+	height:100%;
+	width:100%;
 }
 
 .scroller-padding.bottom
@@ -39,34 +53,72 @@ body.palm-default {
 	height:50px;
 }
 
-.add_icon
+.main-scene .palm-header .button {
+	position:absolute;
+	border:1px solid rgba(10,10,10,.8);
+	background-position:center center;
+	background-repeat:no-repeat;
+	-webkit-border-radius:40px;
+	color:#ffffff;
+	font-size:8pt;
+	top:10px;
+	width:30px;
+	height:30px;
+}
+
+.main-scene .palm-header .button.selected {
+	background-color:rgba(255,255,255,.3);
+}
+
+.main-scene .palm-header .button.right {
+	right:-15px;
+}
+
+.main-scene .palm-header .button.left {
+	left:-15px;
+}
+
+.contact-icon {
+	background:url(../images/contact-icon.png);
+	-webkit-background-size:80% 80%;
+}
+
+.card-icon {
+	background:url(../images/card-icon.png);
+	-webkit-background-size:60% 60%;
+}
+
+/** Palm App Icons **/
+
+.phone-icon
 {
-	background:url(../images/add-contact.png);
+	background:url(../images/icons/phone.png);
+	-webkit-background-size:100% 100%;
+}
+.email-icon
+{
+	background:url(../images/icons/email.png);
+	-webkit-background-size:100% 100%;
+}
+.messaging-icon
+{
+	background:url(../images/icons/messaging.png);
+	-webkit-background-size:100% 100%;
+}
+.contacts-icon
+{
+	background:url(../images/icons/contacts.png);
 	-webkit-background-size:100% 100%;
 }
 
-.list_icon
-{
-	background:url(../images/list.png);
-	-webkit-background-size:100% 100%;
-}
+/** Help Scene **/
 
-.grid_icon
-{
-	background:url(../images/grid.png);
-	-webkit-background-size:100% 100%;
-}
-
-.cmdMenu
-{
-	background: url(../images/command-menu-gradient.png) bottom left repeat-x;
-}
-
-#help-scene
+.help-scene .content-wrapper
 {
 	background-color:rgba(255,255,255,.85);
 	-webkit-border-radius:10px;
-	margin:10px;
+	margin:5%;
+	width:85%;
 	padding:10px;
 	font-size:10pt;
 }
@@ -84,10 +136,15 @@ body.palm-default {
 	line-height:32px;
 }
 
-.list-scene .palm-row-wrapper
-{
-	padding:2px;
+.help-scene .back-icon {
+	background:transparent url(../images/back-icon.png) no-repeat 0px 0px;
 }
+
+.help-scene .back-icon.selected {
+	background:transparent url(../images/back-icon.png) no-repeat 0px 32px;
+}
+
+/** Preferences Scene **/
 
 .prefs-scene .palm-row
 {
@@ -97,30 +154,21 @@ body.palm-default {
 .prefs-scene .label.left
 {
 	float:left;
-	width:130px;
-	margin-left:0px;
-	padding-left:10px;
+	min-width:130px;
+	line-height:12pt;
+	margin-top:10pt;
+	width:auto;
+	text-overflow:wrap;
 }
 
-.prefs-scene .list
-{
-	float:right;
-	width:140px;
-	overflow:hidden;
-	text-overflow:ellipsis;
-	white-space:nowrap;
-	text-align:right;
+.prefs-scene .list .label {
+	min-width:60%;
+	white-space:normal;
+	text-overflow:wrap;
+	line-height:12pt;
 }
 
-.palm-row.first
-{
-	-webkit-border-radius: 15px 15px 0px 0px;
-}
-
-.palm-row.last
-{
-	-webkit-border-radius: 0px 0px 15px 15px ;
-}
+/** Edit Contact Scene **/
 
 .edit-contact-scene .header
 {

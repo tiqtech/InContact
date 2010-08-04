@@ -4,7 +4,6 @@ LBB.Preferences = Class.create({
 		this.loaded = false;
 		this.readOnlyProperties = 
 		{
-			disableAds:{value:false},
 			asyncPhoto:{value:true}
 		};
 		
@@ -16,7 +15,8 @@ LBB.Preferences = Class.create({
 			theme:{value:"default"},
 			icon:{value:"icon"},
 			namePosition:{value:"top"},
-			contactSize:{value:"normal"}
+			contactSize:{value:"normal"},
+			closeAction:{value:"none"}
 		};
 	},
 	getPropertyObject:function(name)

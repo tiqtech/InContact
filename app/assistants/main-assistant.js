@@ -6,48 +6,60 @@ var MainAssistant = Class.create(
 		LBB.Preferences = prefs;
 	
 		this.selected = null;
+		this.activePage = null;
 		
 		this.bodyWidth = document.body.offsetWidth;
 
 		this.dragger = null;
-		this.dropIndex = -1;
 		
-		this.handlers = new HandlerManager(this, ["onSelect","onEnableDrag", "onClearSelected", "onOrientationChange", "handleModelChanged"]);
+		this.handlers = new HandlerManager(this, ["onSelect","onEnableDrag", "onClearSelected", "onOrientationChange", "handleModelChanged", "onPageChange", "onPageChangeTimer", "onContactButtonTap", "onPageButtonTap", "onContactAction", "onConfirmRemoveContact", "onResize"]);
 	},
 	setup:function() {
+		// this needs to be first to set activePage correctly
+		this.setActivePage(this.getDefaultPage());
+		
+		// enables QuickContact widget to render appropriately for driving/normal mode
+		$('mojo-scene-main').addClassName(Mojo.Controller.getAppController().assistant.settings.mode);
+		
 		/** Setup Widgets **/
 		
 		LBB.Util.loadTheme(this.controller);
 		
 		this.setupScrollers();
-		this.initContactWidgets(this.getModel().getContacts());
+		this.initContactWidgets();
 		LBB.Util.setupCommandMenu(this.controller, 'grid', false);
-		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.appMenuModel);
+		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.getAppMenuModel("grid"));
 		
 		/** Event Handlers **/
 		
+		this.controller.listen($('h-scroller'), Mojo.Event.propertyChange, this.handlers.onPageChange);
 		this.controller.listen(document, Mojo.Event.tap, this.handlers.onClearSelected, false);
 		this.controller.listen(document, 'orientationchange', this.handlers.onOrientationChange);
+		this.controller.listen(document, 'resize', this.handlers.onResize);
+		this.controller.listen($('contactButton'), Mojo.Event.tap, this.handlers.onContactButtonTap);
+		this.controller.listen($('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
 		this.controller.watchModel(this.getModel(), this, this.handlers.handleModelChanged);
 		
 		/** Other Setup **/
 		
 		this.resizeScroller();
-		$('main_admob').insert($L('Loading advertisement'));
 	},
 	cleanup:function() {
 		this.controller.stopListening(document, Mojo.Event.tap, this.handlers.onClearSelected, false);
 		this.controller.stopListening(document, 'orientationchange', this.handlers.onOrientationChange);
 		
-		// cleanup QC handlers
-		var contacts = this.getModel().getContacts();
-		for(var i=0;i<contacts.length;i++) {
-			var id = 'qc_' + contacts[i].id;
-			var o = $(id);
-			Mojo.Event.stopListening(o, Mojo.Event.hold, this.handlers.onEnableDrag);
-			Mojo.Event.stopListening(o, Mojo.Event.tap, this.handlers.onSelect);
+		// cleanup QC handlers, iterate all pages and get all contact widgets
+		var pages = this.getModel().getPages();
+		for(var p=0;i<pages.length;p++) { 
+			var contacts = pages[p].getContacts();
+			for(var i=0;i<contacts.length;i++) {
+				var id = 'qc_' + contacts[i].id;
+				var o = $(id);
+				Mojo.Event.stopListening(o, Mojo.Event.hold, this.handlers.onEnableDrag);
+				Mojo.Event.stopListening(o, Mojo.Event.tap, this.handlers.onSelect);
+			}
 		}
-		
+				
 		this.handlers.release();
 	},
 	activate:function(event) {
@@ -64,13 +76,11 @@ var MainAssistant = Class.create(
 			LBB.Model.save();
 			
 			// update display
-			this.initContactWidgets(this.getModel().getContacts());
+			this.initContactWidgets();
 		}
 		
 		this.onOrientationChange(null);
 		this.onNamePositionChange();
-		
-		LBB.Util.displayAd("main_admob", this);
 		this.layoutContacts();
 		this.getScroller().mojo.scrollTo(undefined, 0);
 	},
@@ -79,7 +89,7 @@ var MainAssistant = Class.create(
 		
 		var hScrollWrapper = $('h-scroller-scroll-wrapper');
 		var hScroller = $('h-scroller');
-		var pageCount=this.getModel().pages.length;
+		var pageCount=this.getModel().getPages().length;
 		var pages = [];
 		
 		for(var i=0;i<pageCount;i++) {
@@ -90,32 +100,324 @@ var MainAssistant = Class.create(
 		}
 		
 		this.controller.newContent(hScroller);
-		hScrollWrapper.style.width = (window.innerWidth*pageCount) + "px";
 		
 		for(var i=0;i<pageCount;i++) {
 			pages.push($('page'+i+'-scroller'));	
 		}
 		
-		this.controller.setupWidget('h-scroller', {mode:'horizontal-snap'}, {snapElements:{x:pages}});
+		this.controller.setupWidget('h-scroller', {mode:'horizontal-snap'}, {snapElements:{x:pages}, snapIndex:0});
+	},
+	resizeScroller:function() {
+		var offsetTop = $('h-scroller').cumulativeOffset().top;
+		var hScrollWrapper = $('h-scroller-scroll-wrapper');
+		var margin = 6;
+		
+		var pageCount = this.getModel().getPages().length;
+		for(var i=0;i<pageCount;i++) {
+			var s = $('page'+i+'-scroller');
+			s.style.width = (window.innerWidth-margin) + "px";
+			s.style.height = (window.innerHeight - offsetTop - margin) + "px";
+		}
+		
+		hScrollWrapper.style.width = (window.innerWidth*pageCount) + "px";
+	},
+	revealContact:function(widget) {
+		var dim = this.getLayoutDimensions();
+		var state = this.getScroller().mojo.getState();
+		var scrollerSize = this.getScroller().mojo.scrollerSize();
+		
+		var top = state.top+widget.offsetTop;
+		var bottom = top + dim.size;
+		var y;
+		
+		if(top < 50) {	// top of element is above view
+			y = -(widget.offsetTop - dim.padding - 50);
+		} else if(bottom > scrollerSize.height-50) {	// bottom of element is below view
+			y = state.top - (bottom - scrollerSize.height + 50);
+		}
+		
+		this.getScroller().mojo.scrollTo(undefined, y, true, true);
+	},
+	initContactWidgets:function() {
+		var pages = this.getModel().getPages();
+		for(var i=0;i<pages.length;i++) {
+			this.initContactWidgetsForPage(i);
+		}
+	},
+	initContactWidgetsForPage:function(page) {
+		//Mojo.Log.info("> MainAssistant.initContactWidgetsByPage");
+	
+		var contacts = this.getModel().getPage(page).getContacts();
+		var dim = this.getLayoutDimensions();
+		 
+		// init any new contacts
+		for(var i=0;i<contacts.length;i++) {
+			var id = 'qc_' + contacts[i].id;
+			
+			// if element doesn't already exist (when returning from select contact), create it and set it up
+			if($(id) == null) {
+				// if this is called during setup, the scene controller will take care of initializing widgets
+				// if it's called otherwise (e.g. when returning from select contact), calling newContent to force init
+				this.getScrollWrapper(page).insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
+				this.controller.setupWidget(id, {dimensions:dim}, contacts[i]);
+				
+				var o = $(id);
+				Mojo.Event.listen(o, Mojo.Event.hold, this.handlers.onEnableDrag);
+				Mojo.Event.listen(o, Mojo.Event.tap, this.handlers.onSelect);
+			} else {
+				// if it does exist, just re-render it
+				$(id).mojo.render();
+			}
+		}
+		
+		this.controller.newContent(this.getScroller(page));
+		
+		// drop any removed contacts
+		var that = this;
+		this.controller.select("#" + this.getScroller(page).id + " .QuickContact").each(function(el) {
+			var id = el.id.substring(3);
+			var c = LBB.Model.getInstance().getPage(page).findContactById(id);
+			if(c.index == -1) {
+				that.controller.remove(el);
+			}
+		});
+
+		//Mojo.Log.info("< MainAssistant.initContactWidgetsByPage");
+	},
+	layoutContacts:function(position, dragComplete) {
+		var pages = this.getModel().getPages();
+		for(var i=0;i<pages.length;i++) {
+			this.layoutContactsByPage(i, position, dragComplete);
+		}
+	},
+	layoutContactsByPage:function(page, position, dragComplete) {
+		//Mojo.Log.info("> MainAssistant.layoutContacts");
+		var contacts = this.getModel().getPage(page).getContacts();
+		
+		// set index to length so we can call this function without an arg and it will
+		// render as if no drag is in progress
+		
+		var index = contacts.length;
+		if(position)
+			index = this.indexFromPosition(position);
+		
+		var dim = this.getLayoutDimensions();
+		var size = dim.size - (dim.padding*2);
+		
+		var foundActive = false;
+		for(var i=0;i<contacts.length;i++) {
+		
+		    var id = 'qc_' + contacts[i].id;
+			var o = $(id);
+			var n;
+			
+			if(i >= index && !foundActive) {
+				n = i+1;
+			} else if(i <= index && foundActive) {
+				n = i-1;
+			} else {
+				n = i;
+			}
+			
+			// don't try to reposition the element being drug
+			// and don't update the position counter (n)
+			if(this.dragger != null && o === this.dragger.element) {
+				foundActive = true;
+				continue;
+			}
+			
+		    var top = dim.padding + (Math.floor(n/dim.perRow)*dim.size) + dim.offsetTop;
+		    var left = dim.padding + ((n%dim.perRow)*dim.size) + dim.offsetLeft;
+		    
+			o.style.position = "absolute";
+		    o.style.left = left + "px";
+		    o.style.top = top + "px";
+		    o.style.width = size + "px";
+	    	o.style.height = size + "px";
+		}
+		
+		var n = contacts.length;
+		var row = (n%dim.perRow == 0) ? n/dim.perRow : Math.floor(n/dim.perRow)+1;
+		var bottomPaddingTop = dim.padding + (row*dim.size) + dim.offsetTop;
+		this.getPaddingElement(page).style.top = bottomPaddingTop + "px";
+		
+		//Mojo.Log.info("< MainAssistant.layoutContacts");
+	},
+	getLayoutDimensions:function() {
+		//Mojo.Log.info("> getLayoutDimensions");
+		
+		// handles driving/normal modes
+		var aa = Mojo.Controller.getAppController().assistant;
+		var minWidth = (aa.settings.mode == "driving") ? 120 : 90;
+		
+		var perRow = 0;
+		var margin = 6;
+		var width;
+		
+		var scrollerWidth = window.innerWidth - margin;
+		
+		// find appropriate size
+		do {
+			width = Math.floor(scrollerWidth/++perRow);
+		} while(width > minWidth);
+		
+		// backup one step because loop goes 1 too far before exiting
+		width = Math.floor(scrollerWidth/--perRow);
+		
+		var dim = {
+			offsetTop:50,
+			offsetLeft:0,
+			perRow:perRow,
+			size:width,
+			padding:5
+		};
+		
+		return dim;
+	},
+	indexFromPosition:function(pos) {
+		var dim = this.getLayoutDimensions();
+		var x = pos.x-(this.getScroller().offsetWidth*this.activePage);		// adjust x for current page
+		var col = Math.floor(x/dim.size);
+		var row = Math.floor(pos.y/dim.size);		
+		var index = (row*dim.perRow)+col;
+		var max = this.getCurrentPageModel().getContacts().length;
+		
+		return (index > max) ? max : index;
+	},
+	
+	/*** Utility Methods ***/
+	
+	getModel:function() {
+		return LBB.Model.getInstance();
+	},
+	getCurrentPageModel:function() {
+		var m = this.getModel();
+		return m.getPage(this.activePage);
+	},
+	getPaddingElement:function(_page) {
+		return this.getPageElement('bottom-padding', _page);
+	},
+	getScroller:function(_page) {
+		return this.getPageElement('scroller', _page);
+	},
+	getScrollWrapper:function(_page) {
+		return this.getPageElement('scroll-wrapper', _page);
+	},
+	getPageElement:function(id, _page) {
+		if(typeof(_page) == "undefined") {
+			_page = this.activePage;
+		}
+		
+		return $('page' + _page + '-' + id);
+	},
+	getDefaultPage:function() {
+		// TODO: pull from preferences
+		return 0;
+	},
+	setActivePage:function(page) {
+		this.activePage = page;
+		//IC+ $('pageTitle').update(this.getCurrentPageModel().getTitle());
+	},
+	invalidate:function() {
+		this.onClearSelected();
+		this.initContactWidgets();
+		this.layoutContacts();
+	},
+	
+	/*** Event Handlers & Callbacks ***/
+
+	onResize:function(event) {
+		this.resizeScroller();
+	},
+	onContactButtonTap:function(event) {
+		var disabled = (this.selected==null);
+		this.controller.popupSubmenu({
+			onChoose:this.handlers.onContactAction,
+			placeNear:event.target,
+			items: [{label: $L('Add'), command: 'add'},{label: $L('Edit'), command: 'edit', disabled:disabled},{label: $L('Remove'), command: 'delete', disabled:disabled}]
+		});
+		
+		event.stopPropagation();
+	},
+	onContactAction:function(cmd) {
+		switch(cmd) {
+			case 'add':
+				this.onAddContact();
+				break;
+			case 'edit':
+				this.onEditContact();
+				break;
+			case 'delete':
+				this.onRemoveContact();
+				break;
+		}
+	},
+	onAddContact:function() {
+		var pages = LBB.Model.getInstance().getPages();
+		var c = [];
+		for(var i=0;i<pages.length;i++) {
+			var contacts = pages[i].getContacts();
+			for(var key in contacts) {
+	  			c.push(contacts[key].id);
+	  		}
+	  	}
+	  		
+		this.controller.stageController.pushScene(
+		  { appId :'com.palm.app.contacts', name: 'list' },
+		  { mode: 'picker', exclusions: c, message: $L("Select a Contact")}
+		 );
+	},
+	onEditContact:function() {
+		try {
+			var c = LBB.Model.getInstance().findContactById(this.selected.id.substring(3));
+			if(c.contact != null) {
+				this.controller.stageController.pushScene("edit-contact", c.contact);
+			}
+		} catch (e) {
+			Mojo.Log.error("Unable to find a contact for selected contact.  selected might not exist.  Msg: " + e);
+		}
+	},
+	// TODO: copied from edit-contact.  need to remove duplicate code
+	onRemoveContact:function() {
+		//Mojo.Log.info("> EditContactAssistant.onDelete");
+		
+		this.controller.showAlertDialog(
+		{
+			onChoose:this.handlers.onConfirmRemoveContact,
+			title:$L("Confirm Removal"),
+			message:$L("Are you sure you want to remove this contact?"),
+			choices:
+			[
+				{label:"Remove",value:"REMOVE",type:"negative"},
+				{label:"Cancel",value:"CANCEL",type:"dismiss"},
+			]
+		});
+	},
+	onConfirmRemoveContact:function(value) {
+		if(value == "REMOVE") {
+			var m = this.getModel();
+			m.remove(this.selected.id.substring(3));
+			m.save();
+			
+			this.invalidate();
+		}
+	},
+	onPageButtonTap:function(event) {
+	
+		event.stopPropagation();
 	},
 	onClearSelected:function(event) {
 		//Mojo.Log.info("> MainAssistant.onClearSelected");
 		if(this.selected != null) this.selected.mojo.select(false);
-		
-		LBB.Util.enableEditMenu(this.controller, false);
-		
 		this.selected = null;
 	},
 	handleModelChanged:function(contact) {
+		//Mojo.Log.info("> MainAssistant.handleModelChanged");
+		
 		LBB.Model.save();
 	},
-	pushList:function() {
-		// pushScene keeps it within app so back gesture works as expected
-		this.controller.stageController.swapScene("list", this.getModel());
-	},
-	onContactSelected:function(contact)
-	{
-		this.getModel().getContacts().push(contact);
+	onContactSelected:function(contact) {
+		this.getCurrentPageModel().getContacts().push(contact);
 		this.initContactWidgets();
 		this.controller.modelChanged(this.getModel(), this);
 		this.handleModelChanged();
@@ -129,16 +431,17 @@ var MainAssistant = Class.create(
 		
 		this.revealContact(this.selected);
 		
-		LBB.Util.enableEditMenu(this.controller, true);
-		
 		event.stopPropagation();
 	},
 	onEnableDrag:function(e) {
 		//Mojo.Log.info("> MainAssistant.onEnableDrag");
 		
 		this.onClearSelected();
-			
-		Mojo.Drag.setupDropContainer(this.getScroller(), new DropTarget(this));
+
+		var pageCount = this.getModel().getPages().length;
+		for(var i=0;i<pageCount;i++) {
+			Mojo.Drag.setupDropContainer(this.getScroller(i), new DropTarget(this));
+		}
 		
 		var dim = this.getLayoutDimensions();
 		
@@ -146,12 +449,13 @@ var MainAssistant = Class.create(
 		// guessing that dragger won't let *left* side of element go beyond that point ....
 		var m =
 		{
+			allowExit:true,
 			autoscroll:true,
 			draggingClass:"dragging",
 			minHorizontalPixel:0,
 			maxHorizontalPixel:this.getScroller().offsetWidth-dim.size,
 			minVerticalPixel:0,
-			maxVerticalPixel: (Math.ceil(this.getModel().getContacts().length/dim.numPer)+1)*dim.size
+			maxVerticalPixel: (Math.ceil(this.getCurrentPageModel().getContacts().length/dim.numPer)+1)*dim.size
 		};
 		
 		this.dragger = Mojo.Drag.startDragging(this.controller, e.currentTarget, e, m);
@@ -163,7 +467,7 @@ var MainAssistant = Class.create(
 		if(this.dragger == null) return;
 
 		var contactId = this.dragger.element.id.split("_")[1];
-		var m = this.getModel();
+		var m = this.getCurrentPageModel();
 		var contacts = m.getContacts();
 		var c = m.findContactById(contactId);
 		var index = this.indexFromPosition(position);
@@ -185,7 +489,6 @@ var MainAssistant = Class.create(
 			LBB.Model.save();
 		}
 		
-		this.dropIndex = -1;
 		this.dragger = null;
 		
 		// reset padding height
@@ -224,191 +527,65 @@ var MainAssistant = Class.create(
 			this.resizeScroller();
 			this.layoutContacts();
 			
+			// fixes horizontal scroller positioning
+			$('h-scroller').mojo.setSnapIndex(this.activePage);
+			
 			// fixes grid offset high when scrolled down in previous orientation
 			this.getScroller().mojo.scrollTo(0,0,false);
 		}
 	},
-	resizeScroller:function() {
-		var admobHeight = (LBB.Preferences.getInstance().getProperty("disableAds")) ? 0 : 40;
-		var s = this.getScroller();
-		s.style.width = window.innerWidth + "px";
-		s.style.height = (window.innerHeight - admobHeight) + "px";
+	onPageChange:function(event) {
+		//Mojo.Log.info("> onPageChange");
+		//var prevPage = event.oldValue;
+		var page = event.value;
+		
+		this.setActivePage(page);
 	},
-	revealContact:function(widget) {
+	onHover:function(position) {
 		var dim = this.getLayoutDimensions();
-		var state = this.getScroller().mojo.getState();
-		var scrollerSize = this.getScroller().mojo.scrollerSize();
+		nextPage = this.getScroller().offsetWidth-(dim.size/2)-5;
+		prevPage = (dim.size/2)+5;
 		
-		var top = state.top+widget.offsetTop;
-		var bottom = top + dim.size;
-		var y;
-		
-		if(top < 0) {	// top of element is above view
-			y = -(widget.offsetTop - dim.padding);
-		} else if(bottom > scrollerSize.height-50) {	// bottom of element is below view
-			y = state.top - (bottom - scrollerSize.height + 50);
+		if( (position.x <= prevPage || position.x >= nextPage) && this.pageChangeTimer == null) {
+			this.pageChangeDirection = (position.x <= prevPage) ? -1 : 1;
+			this.pageChangeTimer = setTimeout(this.handlers.onPageChangeTimer, 1000);
+		} else if (position.x > prevPage && position.x < nextPage && this.pageChangeTimer != null) {
+			clearTimeout(this.pageChangeTimer);
+			this.pageChangeTimer = null;
 		}
 		
-		this.getScroller().mojo.scrollTo(undefined, y, true, true);
+		this.layoutContactsByPage(this.activePage, position);
 	},
-	initContactWidgets:function() {
-		//Mojo.Log.info("> MainAssistant.initContactWidgets");
-		var timing = Mojo.Timing;
-		timing.resume("scene#initContactWidgets");
+	onPageChangeTimer:function() {
+		$('h-scroller').mojo.setSnapIndex(this.activePage+this.pageChangeDirection, true);
 		
-		var contacts = this.getModel().getContacts();
-		 
-		// init any new contacts
-		for(var i=0;i<contacts.length;i++) {
-			var id = 'qc_' + contacts[i].id;
-			
-			// if element doesn't already exist (when returning from select contact), create it and set it up
-			if($(id) == null) {
-				// if this is called during setup, the scene controller will take care of initializing widgets
-				// if it's called otherwise (e.g. when returning from select contact), calling newContent to force init
-				this.getScrollWrapper().insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
-				this.controller.setupWidget(id, {dimensions:this.getLayoutDimensions()}, contacts[i]);
-			
-				var o = $(id);
-				Mojo.Event.listen(o, Mojo.Event.hold, this.handlers.onEnableDrag);
-				Mojo.Event.listen(o, Mojo.Event.tap, this.handlers.onSelect);
-			} else {
-				// if it does exist, just re-render it
-				$(id).mojo.render();
-			}
-		}
-		
-		this.controller.newContent(this.getScroller());
-		
-		// drop any removed contacts
-		var that = this;
-		this.controller.select(".QuickContact").each(function(el) {
-			var id = el.id.substring(3);
-			var c = LBB.Model.getInstance().findContactById(id);
-			if(c.index == -1) {
-				that.controller.remove(el);
-			}
+		// reset
+		clearTimeout(this.pageChangeTimer);
+		this.pageChangeTimer = null;
+		this.pageChangeDirection = 0;
+	},
+	onAddPage:function() {
+		var m = this.getModel();
+		m.getPages().push(new LBB.Page("Untitled Page", []));
+		m.save();
+	},
+	onRemovePage:function() {
+		this.controller.showAlertDialog(
+		{
+			onChoose:this.onConfirmRemovePage.bind(this),
+			title:$L("Confirm Deletion"),
+			message:$L("Are you sure you want to delete this page?"),
+			choices:
+			[
+				{label:"Delete",value:"DELETE",type:"negative"},
+				{label:"Cancel",value:"CANCEL",type:"dismiss"},
+			]
 		});
-
-		timing.pause("scene#initContactWidgets");
 	},
-	layoutContacts:function(position, dragComplete) {
-		//Mojo.Log.info("> MainAssistant.layoutContacts");
-		
-		var timing = Mojo.Timing;
-		timing.resume("scene#layoutContacts");
-		
-		var contacts = this.getModel().getContacts();
-		
-		// set index to length so we can call this function without an arg and it will
-		// render as if no drag is in progress
-		
-		var index = contacts.length;
-		if(position)
-			index = this.indexFromPosition(position);
-		
-		// if in same drop zone, kick out
-		if(index == this.dropIndex) return;
-		
-		var dim = this.getLayoutDimensions();
-		var size = dim.size - (dim.padding*2);
-		
-		var foundActive = false;
-		for(var i=0;i<contacts.length;i++) {
-		
-		    var id = 'qc_' + contacts[i].id;
-			var o = $(id);
-			var n;
-			
-			if(i >= index && !foundActive) {
-				n = i+1;
-			} else if(i <= index && foundActive) {
-				n = i-1;
-			} else {
-				n = i;
-			}
-			
-			// don't try to reposition the element being drug
-			// and don't update the position counter (n)
-			if(this.dragger != null && o === this.dragger.element) {
-				foundActive = true;
-				continue;
-			}
-			
-		    var top = dim.padding + (Math.floor(n/dim.perRow)*dim.size) + dim.offsetTop;
-		    var left = dim.padding + ((n%dim.perRow)*dim.size) + dim.offsetLeft;
-		    
-			o.style.position = "absolute";
-		    o.style.left = left + "px";
-		    o.style.top = top + "px";
-		    o.style.width = size + "px";
-	    	o.style.height = size + "px";
-		}
-
-		var n = contacts.length;
-		var row = (n%dim.perRow == 0) ? n/dim.perRow : Math.floor(n/dim.perRow)+1;
-		var bottomPaddingTop = dim.padding + (row*dim.size) + dim.offsetTop;
-		this.getPaddingElement().style.top = bottomPaddingTop + "px";
-		
-		timing.pause("scene#layoutContacts");
-	},
-	getLayoutDimensions:function() {
-		//Mojo.Log.info("> getLayoutDimensions");
-		
-		var prefs = LBB.Preferences.getInstance();
-		var sizePref = prefs.getProperty("contactSize");
-		var minWidth = (sizePref == "large") ? 120 : 90;
-		var contactPadding = 5;
-		var perRow = 0;
-		var width;
-		
-		// find appropriate size
-		do {
-			width = Math.floor(this.getScroller().offsetWidth/++perRow);
-		} while(width > minWidth);
-		
-		// backup one step because loop goes 1 too far before exiting
-		width = Math.floor(this.getScroller().offsetWidth/--perRow);
-		
-		var offsetTop = 0;
-		if(prefs.getProperty("disableAds") == false)
-			offsetTop = $('main_admob').offsetHeight + 4;
-		
-		return {
-			offsetTop:0,
-			offsetLeft:0,
-			perRow:perRow,
-			size:width,
-			padding:contactPadding
-		};
-	},
-	indexFromPosition:function(pos) {
-		var dim = this.getLayoutDimensions();
-		var col = Math.floor(pos.x/dim.size);
-		var row = Math.floor(pos.y/dim.size);		
-		var index = (row*dim.perRow)+col;
-		var max = this.getModel().getContacts().length;
-		
-		return (index > max) ? max : index;
-	},
-	getModel:function() {
-		return LBB.Model.getInstance();
-	},
-	getPaddingElement:function(_page) {
-		return this.getPageElement('bottom-padding', _page);
-	},
-	getScroller:function(_page) {
-		return this.getPageElement('scroller', _page);
-	},
-	getScrollWrapper:function(_page) {
-		return this.getPageElement('scroll-wrapper', _page);
-	},
-	getPageElement:function(id, _page) {
-		if(!_page) {
-			_page = 0;
-		}
-		
-		return $('page' + _page + '-' + id);
+	onConfirmRemovePage:function() {
+		var m = this.getModel();
+		m.getPages().splice(this.activePage, 1);
+		m.save();	
 	}
 });
 
@@ -424,8 +601,8 @@ var DropTarget = Class.create(
 	dragHover:function(el) {
 		// storing last position because i can't seem to get it in dragDrop (is reset to original spot)
 		this.pos = el.cumulativeOffset();
-	
-		this.assistant.layoutContacts(this.getCenter(el));
+
+		this.assistant.onHover(this.getCenter(el));
 	},
 	dragLeave:function(el){
 		

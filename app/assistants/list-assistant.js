@@ -28,7 +28,7 @@ var ListAssistant = Class.create(
 		
 		LBB.Util.setupCommandMenu(this.controller, 'list', false);
 		
-		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.appMenuModel);
+		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.getAppMenuModel("list"));
 
 		this.controller.listen($('list'), Mojo.Event.listReorder, this.handlers.onReorder);
 		this.controller.listen($('list'), Mojo.Event.listDelete, this.handlers.onDelete);

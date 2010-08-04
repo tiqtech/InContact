@@ -8,8 +8,9 @@ var AppAssistant = Class.create(
 		this.showHelp = false;
 		this.state = {pref:false,model:false,version:false};
 		this.versionCookie = new Mojo.Model.Cookie("version");
-		
-		AdMob.ad.initialize({pub_id:"a14be4b9a87e63a",bg_color:"rgba(237,240,255,.5)",text_color:"#000",test_mode:false});
+		this.settings = {
+			mode:"normal"	// normal or driving
+		};
 	},
 	setup:function() {
 		this.setUpdateIconAlarm();
@@ -21,7 +22,6 @@ var AppAssistant = Class.create(
 			// TODO: create background stage
 			this.updateIcon();
 		} else {
-			Mojo.Log.info("createStage");
 			var c = this.controller.getStageController("main");
 			if(!c) {
 				this.controller.createStageWithCallback("main", this.handlers.startMainStage, "card");
@@ -35,7 +35,6 @@ var AppAssistant = Class.create(
 	},
 	loadDepot:function(isForeground) {
 		this.isForeground = isForeground
-		Mojo.Timing.resume("stage#createDb");
 		this.db = new Mojo.Depot({name:"InContact-Contacts",version:1}, this.handlers.onCreateDb, this.handlers.onCreateDbFailure);
 	},
 	updateIcon:function() {
@@ -63,11 +62,8 @@ var AppAssistant = Class.create(
 	},
 	onCreateDb:function()
 	{
-		Mojo.Timing.pause("stage#createDb");
 		//Mojo.Log.info("> AppAssistant.onCreateDb");
 		
-		Mojo.Timing.resume("stage#loadModel");
-		Mojo.Timing.resume("stage#loadPrefs");
 		LBB.Model.load(this.db, this.handlers.onModelReady);
 		LBB.Preferences.load(this.db, this.handlers.onPrefsReady);
 	},
@@ -79,15 +75,13 @@ var AppAssistant = Class.create(
 	onPrefsReady:function()
 	{
 		//Mojo.Log.info("> AppAssistant.onPrefsReady");
-		Mojo.Timing.pause("stage#loadPrefs");
-		
+	
 		this.state.pref = true;
 		this.onReady();
 	},
 	onModelReady:function()
 	{
 		//Mojo.Log.info("> AppAssistant.onModelReady");
-		Mojo.Timing.pause("stage#loadModel");
 
 		this.state.model = true;
 		this.checkVersion();
@@ -95,7 +89,7 @@ var AppAssistant = Class.create(
 	},
 	onReady:function()
 	{
-		Mojo.Log.info("> AppAssistant.onReady");
+		//Mojo.Log.info("> AppAssistant.onReady");
 		if(this.state.model == true && this.state.pref == true && this.state.version == true) {
 			if(this.model == null) this.model = LBB.Model.getInstance();
 			
@@ -111,11 +105,10 @@ var AppAssistant = Class.create(
 				if(this.showHelp == true) {
 					this.onShowHelp();
 				} else {
-					var view = prefs.getProperty("initialView");
-					this.onSwapScene(view);
+					//var view = prefs.getProperty("initialView");
+					this.onSwapScene("main");
 				}
 			}
-			Mojo.Timing.reportTiming("stage#", "Stage");
 		}
 	},
 	handleCommand:function(event)
@@ -125,12 +118,12 @@ var AppAssistant = Class.create(
 				case Mojo.Menu.prefsCmd:
 					this.controller.getActiveStageController("card").pushScene("prefs");
 					break;
-				case "scene-list":
-					this.onSwapScene("list");
-					break
-				case "scene-grid":
-					this.onSwapScene("main");
-					break;
+//				case "scene-list":
+//					this.onSwapScene("list");
+//					break
+//				case "scene-grid":
+//					this.onSwapScene("main");
+//					break;
 				case Mojo.Menu.helpCmd:
 					this.onShowHelp();
 					break;
@@ -140,28 +133,74 @@ var AppAssistant = Class.create(
 				case "add":
 					this.onAddContact();
 					break;
+				case "mode-driving":
+					this.onModeChange("driving");
+					break;
+				case "mode-normal":
+					this.onModeChange("normal");
+					break;
+				case "launch-phone":
+					this.onLaunch("com.palm.app.phone");
+					break;
+				case "launch-email":
+					this.onLaunch("com.palm.app.email");
+					break;
+				case "launch-messaging":
+					this.onLaunch("com.palm.app.messaging");
+					break;
+				case "launch-contacts":
+					this.onLaunch("com.palm.app.contacts");
+					break;
+				case "close-help":
+					this.onBack(event);
+					break;
 			}
 		} else if(event.type == Mojo.Event.back) {
 			this.onBack(event);
 		}
 	},
+	onModeChange:function(mode) {
+		this.settings.mode = mode;
+		var scene = this.controller.getActiveStageController("card").activeScene();
+		this.onSwapScene(scene.sceneName, true);
+	},
 	onBack:function(event) {
-		var scenes = this.controller.getActiveStageController("card").getScenes();
+		var stageController = this.controller.getActiveStageController("card");
+		
 		// when the help scene was shown on start-up due to new version, it's the only scene on the stack
 		// if that's the case, swap the scene out with the initial view
-		if(scenes.length == 1 && scenes[0].sceneName == "help") {
-			var prefs = LBB.Preferences.getInstance();
-			var view = prefs.getProperty("initialView");
-			this.onSwapScene(view);
+		if(stageController.activeScene().sceneName == "help") {
+			//var prefs = LBB.Preferences.getInstance();
+			//var view = prefs.getProperty("initialView");
+			
+			if(stageController.getScenes().length == 1) {
+				// if it's the only scene, swap
+				this.onSwapScene("main");
+			} else {
+				// otherwise, just pop
+				stageController.popScene();
+			}
 			
 			event.stop();
 		}
 	},
-	onSwapScene:function(scene)
+	onLaunch:function(appid) {
+		LBB.Util.cmdMenuModel.items[1].toggleCmd = "";
+		//this.controller.getActiveStageController("card").activeScene().modelChanged(LBB.Util.cmdMenuModel);
+		
+		new Mojo.Service.Request('palm://com.palm.applicationManager', {
+		    method: 'launch',
+		    parameters:  {
+		        id: appid
+		    },
+		    onFailure:function(e) { Mojo.Log.info(e.errorText); }
+		});
+	},
+	onSwapScene:function(scene, force)
 	{
 		// TODO: figure out why pushScene doesn't work as expected
 		var controller = this.controller.getActiveStageController("card")
-		if(!controller.activeScene() || controller.activeScene().sceneName != scene) {
+		if(force || !controller.activeScene() || controller.activeScene().sceneName != scene) {
 			controller.swapScene({
 				name:scene,
 				transition:Mojo.Transition.crossFade,
@@ -170,15 +209,19 @@ var AppAssistant = Class.create(
 		}
 	},
 	onShowHelp:function() {
-		Mojo.Log.info("> onShowHelp");
+		//Mojo.Log.info("> onShowHelp");
 		this.controller.getActiveStageController("card").pushScene("help");
 	},
 	onAddContact:function()
 	{
-		var contacts = LBB.Model.getInstance().getContacts();
+		var pages = LBB.Model.getInstance().getPages();
 		var c = [];
-		for(var key in contacts)
-	  		c.push(contacts[key].id);
+		for(var i=0;i<pages.length;i++) {
+			var contacts = pages[i].getContacts();
+			for(var key in contacts) {
+	  			c.push(contacts[key].id);
+	  		}
+	  	}
 	  		
 		this.controller.getActiveStageController("card").pushScene(
 		  { appId :'com.palm.app.contacts', name: 'list' },
