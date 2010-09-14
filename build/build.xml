@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="base-build">
+
+	<target name="clean">
+		<delete dir="../tmp" />
+	</target>
+
+	<target name="init" depends="clean">
+		<mkdir dir="../tmp" />
+		<copy todir="../tmp">
+			<fileset dir="../../common"/>
+		</copy>
+		<copy todir="../tmp" overwrite="true" verbose="true">
+			<fileset dir="../src"/>
+		</copy>
+	</target>
+
+	<target name="package" depends="init">
+		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-package.bat" output="package-result.log">
+			<arg value="../tmp" />
+		</exec>
+		<loadfile property="ipkFile" srcFile="package-result.log">
+			<filterchain>
+				<tokenfilter>
+				    <replaceregex pattern="creating package (.*) in .*" replace="\1" flags="gi"/>
+				</tokenfilter>
+			</filterchain>
+		</loadfile>
+		<loadfile property="appId" srcFile="package-result.log">
+			<filterchain>
+				<tokenfilter>
+				    <replaceregex pattern="creating package (.*?)_.* in .*" replace="\1" flags="gi"/>
+				</tokenfilter>
+			</filterchain>
+		</loadfile>
+		<delete file="package-result.log"/>
+		<delete dir="../tmp"/>
+	</target>
+	
+	<target name="deploy" depends="package">
+		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-install.bat">
+			<arg value="-d" />
+			<arg value="${device}"/>
+			<arg value="${ipkFile}"/>
+		</exec>
+	</target>
+	
+	<target name="launch" depends="deploy">
+		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-launch.bat">
+			<arg value="-d" />
+			<arg value="${device}"/>
+			<arg value="${appId}" />
+		</exec>
+	</target>
+
+	<target name="remove" depends="package">
+		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-install.bat">
+			<arg value="-d" />
+			<arg value="${device}"/>
+			<arg value="-r" />
+			<arg value="${appId}" />
+		</exec>
+	</target>
+	
+	<target name="remove-and-deploy" depends="remove,launch">
+		<echo message="Remove and deploy complete"/>
+	</target>
+	
+</project>

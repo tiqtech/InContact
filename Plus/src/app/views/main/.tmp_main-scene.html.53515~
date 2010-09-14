@@ -1,0 +1,10 @@
+<div id="header" class="palm-header">
+	<div id="contactButton" class="button left contact-icon" x-mojo-tap-highlight="momentary"></div>
+	<div id="pageTitle">InContact</div>
+	<div id="pageButton" class="button right card-icon" x-mojo-tap-highlight="momentary"></div> 
+</div>
+<div x-mojo-element="Scroller" id="h-scroller">
+	<div id="h-scroller-scroll-wrapper"></div>
+</div>
+<div class="pageTicks" id="pageTicks"></div>
+<div class="help-bubble contact" id="help-bubble"></div>

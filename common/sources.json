@@ -1,0 +1,32 @@
+[
+	{"source": "app/models/metrix.js"},
+	{"source": "app/models/asyncWrappers.js"},
+	{"source": "app/js/Util.js"},
+    {"source": "app/js/ModelBase.js"},
+    {"source": "app/js/Model.js"},
+    {"source": "app/js/Preferences.js"},
+    {"source": "app/js/QuickContact.js"},
+    {"source": "app/js/MainAssistantBase.js"},
+	{"source": "app/js/PrefsAssistantBase.js"},
+    {"source": "app/assistants/app-assistant.js"},
+    {
+        "scenes": "main",
+        "source": "app/assistants/main-assistant.js"
+    },
+    {
+        "scenes": "list",
+        "source": "app/assistants/list-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
+    },
+    {
+        "scenes": "prefs",
+        "source": "app/assistants/prefs-assistant.js"
+    },
+    {
+    	"scenes": "edit-contact",
+    	"source": "app/assistants/edit-contact-assistant.js"
+    }
+]
