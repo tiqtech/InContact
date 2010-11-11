@@ -1,0 +1,54 @@
+<div class="content-wrapper">
+	<div class="header">
+		<img src="icon.png">
+		<h2>InContact v1.4.1</h2>
+	</div>
+	<h3>Like InContact?</h3>
+	<div><a href="http://developer.palm.com/appredirect/?packageid=com.tiqtech.incontact&applicationid=3416">Write a review</a> and let others know your experience!</div>
+	<h3>Questions or Feedback?</h3>
+	<ul>
+		<li><a href="http://twitter.com/tiqtech">@tiqtech</a> on Twitter</li>
+		<li><a href="mailto:incontact-support@tiqtech.com">InContact Support</a></li>
+		<li><a href="http://www.tiqtech.com/InContact">InContact Website</a></li>
+	</ul>
+	<h3>Release Notes</h3>
+	<h4>Version 1.4.1</h4>
+	<ul>
+		<li>Fix for contact photos</li>		<li>Added dialog to <a href="http://developer.palm.com/appredirect/?packageid=com.tiqtech.incontactplus">upgrade to InContact Plus</a></li>		<li>Minor UI changes</li>
+	</ul>
+	<h4>Version 1.4.0</h4>
+	<ul>
+		<li>Added preference for starting mode (normal or driving)</li>
+		<li>Fixed drag and drop issues:</li>
+		<ul>
+			<li>Freezing after dragging a contact</li>
+			<li>Improved tracking of drop location</li>
+		</ul>
+	</ul> 
+	<h4>Version 1.3.1</h4>
+	<ul>
+		<li>Ad Free!</li>
+		<li>Added Close on Dial preference</li>
+		<li>Added "Driving Mode" to enable larger photos and icons for easier selection</li>
+		<li>Removed list mode.  If you'd like it back, <a href="mailto:incontact-support@tiqtech.com?subject=Bring Back List Mode!">let me know</a>!</li>
+		<li>Revised primary navigation</li>
+		<li>Fixed issue with "Unknown" contacts for SMS or IM messages</li>
+	</ul>
+	<h4>Version 1.2.1</h4>	<ul>		<li>Added localization support</li>		<li>Added Spanish translations</li>		<li>Added global preference for name position</li>		<li>Fixed issue with launcher icon reverting to default</li>	</ul>
+	<h4>Version 1.1.0</h4>
+	<ul>
+		<li>Added the ability to change the theme between the current default and 2 new themes - Blue Steel and Spring!</li>
+		<li>Added the ability to change the launcher icon from the default to a new phone icon!</li>
+		<li>Enhanced edit contact interface</li>
+		<li>Fixed drag and drop issues</li>		
+		<li>Fixed render issues with advertisements</li>
+	</ul>
+	<h4>Version 1.0.0</h4>
+	<div>Initial release featuring:</div>
+	<ul>
+		<li>Support for grid and list views</li>
+		<li>Draggable photos to reorder display</li>
+		<li>Automatic or user-driven selection of phone number, IM name, or email address</li>
+		<li>Support for portrait and landscape modes</li>
+	</ul>
+</div>

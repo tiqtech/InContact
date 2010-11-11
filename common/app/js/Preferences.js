@@ -58,54 +58,81 @@ var _Preferences = {
 
 LBB.Preferences = Class.create(_Preferences);
 LBB.Preferences._key = "prefs";
-LBB.Preferences._instance = new LBB.Preferences();
-LBB.Preferences._db = null;
 
-LBB.Preferences.load = function(db, callback)
+LBB.Preferences.load = function(db, provided, callback)
 {
 	try {
 		LBB.Util.log("> LBB.Preferences.load");
 	
-		this._db = db;
-		this._db.get(
-			this._key,
-			function(m) {
-				try {
-					LBB.Util.log("> LBB.Preferences.load.get");
-					
-					this._instance = new LBB.Preferences();
-					for(var k in m) {
-						this._instance.properties[k] = m[k];
-					}
-					
-					// copy read-only properties
-					for(var k in this._instance.readOnlyProperties) {
-						this._instance.properties[k] = this._instance.readOnlyProperties[k];
-					}
-					
-					this._instance.loaded = true;
-						
-					if(callback) {
-						callback();
-					}
-				} catch (e) {
-					LBB.Util.error("LBB.Preferences.load.get", e);
-				}
-			}.bind(this), 
-			function(e) { LBB.Util.log("Unable to get preferences database", e); }
-		);
+		this.setDatabase(db);
+		this.setInstance(new LBB.Preferences());
+		
+		db.get(this._key, this.onLoadComplete.bind(this, callback, provided),
+		function(e){
+			LBB.Util.log("Unable to get preferences database", e);
+		});
 	} catch (e) {
 		LBB.Util.error("LBB.Preferences.load", e);
 	}
 };
 
-LBB.Preferences.save = function()
-{
-	//Mojo.Log.info("> LBB.Preferences.save");
-	this._db.add(this._key, this._instance.properties);	
+LBB.Preferences.onLoadComplete = function(callback, externalPrefs, m) {	
+	try {
+		LBB.Util.log("> LBB.Preferences.onLoadComplete");
+		var inst = this.getInstance();
+		
+		for (var k in m) {
+			inst.properties[k] = m[k];
+		}
+		
+		// copy read-only properties
+		for (var k in inst.readOnlyProperties) {
+			inst.properties[k] = inst.readOnlyProperties[k];
+		}
+		
+		this.importData(externalPrefs);
+		
+		inst.loaded = true;
+		
+		if (callback) {
+			callback();
+		}
+	} 
+	catch (e) {
+		LBB.Util.error("LBB.Preferences.load.get", e);
+	}
 }
 
-LBB.Preferences.getInstance = function()
-{
-	return LBB.Preferences._instance;
+LBB.Preferences.importData = function(externalPrefs) {
+	var inst = this.getInstance();
+	
+	// override current prefs with external if provided
+	if(externalPrefs && externalPrefs.properties) {
+		for (var k in externalPrefs.properties) {
+			inst.properties[k] = externalPrefs.properties[k];
+		}
+		
+		// commit changes
+		this.save();	
+	}
+}
+
+LBB.Preferences.save = function() {
+	this.getDatabase().add(this._key, this.getInstance().properties);	
+}
+
+LBB.Preferences.getInstance = function() {
+	return Mojo.Controller.getAppController().assistant._preferences;
+}
+
+LBB.Preferences.setInstance = function(inst) {
+	Mojo.Controller.getAppController().assistant._preferences = inst;
+}
+
+LBB.Preferences.getDatabase = function() {
+	return Mojo.Controller.getAppController().assistant._preferencesDatabase;
+}
+
+LBB.Preferences.setDatabase = function(db) {
+	Mojo.Controller.getAppController().assistant._preferencesDatabase = db;
 }

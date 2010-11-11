@@ -11,17 +11,32 @@ body.palm-default {
 	background-color:rgb(237,240,255);
 }
 
+.content-wrapper {
+	background-color:rgba(255,255,255,.85);
+}
+
 /** General **/
 
-.palm-row.first
-{
+.palm-row.first {
 	-webkit-border-radius: 15px 15px 0px 0px;
 }
 
-.palm-row.last
-{
+.palm-row.last {
 	-webkit-border-radius: 0px 0px 15px 15px ;
 }
+
+.palm-row.single {
+	-webkit-border-radius:15px;
+}
+
+.content-wrapper {
+	-webkit-border-radius:10px;
+	margin:5%;
+	width:85%;
+	padding:10px;
+	font-size:12pt;
+}
+
 
 /** Main Scene **/
 
@@ -88,6 +103,11 @@ body.palm-default {
 	-webkit-background-size:60% 60%;
 }
 
+.main-scene .plus-icon {
+	background:transparent url(../images/plus-icon.png) no-repeat;
+	-webkit-background-size:80% 80%;
+}
+
 .main-scene .pageTicks {
 	position:fixed;
 	bottom:50px;
@@ -128,73 +148,84 @@ body.palm-default {
 	right:5%;
 }
 
-.main-scene #upgrade-dialog .dialog-wrapper {
+.main-scene #upgrade-scroller {
 	position:absolute;
-	top:10px;
-	right:10px;
-	left:10px;
-	bottom:10px;
+	top:3%;
+	left:3%;
+	width:94%;
+	height:94%;
 	background-color:rgba(230,230,230,0.9);
 	-webkit-border-radius:15px;
 }
 
 /** Palm App Icons **/
 
-.phone-icon
-{
+.phone-icon {
 	background:url(../images/icons/phone.png);
 	-webkit-background-size:100% 100%;
 }
-.email-icon
-{
+
+.email-icon {
 	background:url(../images/icons/email.png);
 	-webkit-background-size:100% 100%;
 }
-.messaging-icon
-{
+
+.messaging-icon {
 	background:url(../images/icons/messaging.png);
 	-webkit-background-size:100% 100%;
 }
-.contacts-icon
-{
+
+.contacts-icon {
 	background:url(../images/icons/contacts.png);
 	-webkit-background-size:100% 100%;
 }
-.calendar-icon
-{
+
+.calendar-icon {
 	background:url(../images/icons/calendar.png);
 	-webkit-background-size:100% 100%;
 }
+
 /** Help Scene **/
 
-.help-scene .content-wrapper
-{
-	background-color:rgba(255,255,255,.85);
-	-webkit-border-radius:10px;
-	margin:5%;
-	width:85%;
-	padding:10px;
-	font-size:10pt;
+.help-scene .topic-title {
+	line-height:50px;
+	padding-left:5px;
+	font-size:12pt;
 }
 
-.help-scene .header IMG
-{
+.help-scene .content-wrapper {
+	padding:2px 0px 2px 0px;
+	width:90%;
+}
+
+.help-scene .seeAlso-header {
+	font-weight:bold;
+}
+
+.help-scene .palm-body-text.seeAlso-link {
+	color:#0000ff;
+	text-decoration:underline;
+	margin-bottom:0px;
+}
+
+/** About Scene **/
+
+.about-scene .header IMG {
 	float:left;
 	height:32px;
 	width:32px;
 	margin-right:10px;
 }
 
-.help-scene .header H2
-{
+.about-scene .header H2 {
 	line-height:32px;
 }
 
-.help-scene .back-icon {
+.about-scene .back-icon {
 	background:transparent url(../images/back-icon.png) no-repeat 0px 0px;
 }
 
-.help-scene .back-icon.selected {
+.about-scene .back-icon.selected {
 	background:transparent url(../images/back-icon.png) no-repeat 0px 32px;
 }
 
@@ -266,21 +297,11 @@ body.palm-default {
 
 .edit-contact-scene .palm-row .label
 {
-	width:40%;
+	ddwidth:40%;
 	float:left;
 }
 
-.edit-contact-scene .contact-details
-{
-	font-size:12pt;
-	text-align:right;
-	margin-right:2%;
-	float:right;
-	width:50%;
-	margin-top:15px;
-	text-overflow:ellipsis;
-	white-space:nowrap;
-	overflow: hidden;
+.edit-contact-scene .contact-details {
 }	
 
 .edit-contact-scene .contact-method-row

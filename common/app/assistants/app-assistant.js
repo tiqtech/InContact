@@ -3,18 +3,23 @@ var _AppAssistant = {
 		try {
 			LBB.Util.log("> AppAssistant.initialize");
 			
+			Mojo.Timing.resume("AppAssistant");
+			Mojo.Timing.resume("PreLoad");
+			
 			// instantiate on Class and create a copy on this instance
-			//AppAssistant.Metrix = new Metrix();
-			//this.Metrix = AppAssistant.Metrix;		
+			this.Metrix = new Metrix();		
 			
 			this.handlers = new HandlerManager(this, ["startMainStage", "onCreateDb", "onCreateDbFailure", "onModelReady", "onPrefsReady"]);
 			this.model = null;
-			this.showHelp = false;
+			this.showAbout = false;
 			this.state = {pref:false,model:false};
 			this.versionCookie = new Mojo.Model.Cookie("version");
 			this.settings = {
 				mode:"normal"	// normal or driving
 			};
+			
+			//this.launchParams = {model:undefined,preferences:undefined};
+			
 		} catch (e) {
 			LBB.Util.error("AppAssistant.initialize", e);
 		}
@@ -34,22 +39,29 @@ var _AppAssistant = {
 			LBB.Util.log("> AppAssistant.handleLaunch");
 			
 			if(params && params.action == "updateIcon") {
-				// TODO: create background stage
-				this.updateIcon();
-			} else {
-				if(params && params.action == "upgrade") {
-					Mojo.Log.info("upgrading!!!!");
-				}
+				//this.launchParams = params;
 				
+				this.updateIcon();
+			} else {				
 				var c = this.controller.getStageController("main");
 				if(!c) {
 					// only post data when Main is created
-					//this.Metrix.postDeviceData();
+					this.Metrix.postDeviceData();
 					
 					LBB.Util.log("create stage");
-					this.controller.createStageWithCallback("main", this.handlers.startMainStage, "card");
+					Mojo.Timing.resume("createStageWithCallback");
+					this.controller.createStageWithCallback({
+						name: "main",
+						lightweight: true
+					}, this.handlers.startMainStage, "card");
 				} else {
 					LBB.Util.log("activate stage")
+					
+					// dropping upgrade code for now
+					//LBB.Preferences.importData(this.launchParams.preferences);
+					//LBB.Model.importData(this.launchParams.model);
+					
+					//this.onSwapScene("main", true);
 					c.activate();
 				}
 			}
@@ -58,6 +70,8 @@ var _AppAssistant = {
 		}
 	},
 	startMainStage:function(stageController) {
+		Mojo.Timing.pause("createStageWithCallback");
+		Mojo.Timing.reportTiming("createStageWithCallback","createStageWithCallback");
 		try {
 			LBB.Util.log("> AppAssistant.startMainStage");
 			this.loadDepot(true);
@@ -66,6 +80,9 @@ var _AppAssistant = {
 		}
 	},
 	loadDepot:function(isForeground) {
+		Mojo.Timing.pause("PreLoad");
+		Mojo.Timing.reportTiming("PreLoad", "PreLoad");
+		Mojo.Timing.resume("DB");
 		try {
 			LBB.Util.log("> AppAssistant.loadDepot");
 			this.isForeground = isForeground
@@ -98,11 +115,16 @@ var _AppAssistant = {
 		});
 	},
 	onCreateDb:function() {
+		Mojo.Timing.pause("DB");
+		Mojo.Timing.reportTiming("DB","DB");
 		try {
 			LBB.Util.log("> AppAssistant.onCreateDb");
 			
-			LBB.Model.load(this.db, this.handlers.onModelReady);
-			LBB.Preferences.load(this.db, this.handlers.onPrefsReady);
+			Mojo.Timing.resume("Model");
+			Mojo.Timing.resume("Prefs");
+			// param 2 is for upgrade code
+			LBB.Model.load(this.db, undefined, this.handlers.onModelReady);
+			LBB.Preferences.load(this.db, undefined, this.handlers.onPrefsReady);
 		} catch(e) {
 			LBB.Util.error("AppAssistant.onCreateDb", e);
 		}
@@ -114,11 +136,17 @@ var _AppAssistant = {
 	onPrefsReady:function() {
 		LBB.Util.log("> AppAssistant.onPrefsReady");
 	
+		Mojo.Timing.pause("Prefs");
+		Mojo.Timing.reportTiming("Prefs", "Prefs");
+	
 		this.state.pref = true;
 		this.onReady();
 	},
 	onModelReady:function() {
 		LBB.Util.log("> AppAssistant.onModelReady");
+		
+		Mojo.Timing.pause("Model");
+		Mojo.Timing.reportTiming("Model", "Model");
 
 		this.state.model = true;
 		this.checkVersion();
@@ -140,11 +168,14 @@ var _AppAssistant = {
 					this.settings.mode = prefs.getProperty("startMode");
 					
 					// TODO: need to change to delegateToSceneAssistant to avoid start up issue when app is deactivated right after launch
-					var controller = this.controller.getActiveStageController("card");		
+					var controller = this.controller.getStageProxy("main");		
 					controller.setWindowOrientation((rotate) ? "free" : "up");
 					
-					if(this.showHelp == true) {
-						this.onShowHelp();
+					Mojo.Timing.pause("AppAssistant");
+					Mojo.Timing.reportTiming("AppAssistant", "AppAssistant");
+					
+					if(this.showAbout == true) {
+						this.onShowAbout();
 					} else {
 						//var view = prefs.getProperty("initialView");
 						this.onSwapScene("main");
@@ -172,7 +203,7 @@ var _AppAssistant = {
 						this.onShowHelp();
 						break;
 					case "scene-about":
-						this.controller.getActiveStageController("card").pushAppSupportInfoScene();
+						this.onShowAbout();
 						break;
 					case "mode-driving":
 						this.onModeChange("driving");
@@ -195,7 +226,7 @@ var _AppAssistant = {
 					case "launch-calendar":
 						this.onLaunch("com.palm.app.calendar");
 						break;
-					case "close-help":
+					case "close-about":
 						this.onBack(event);
 						break;
 					case "upgrade":
@@ -211,18 +242,21 @@ var _AppAssistant = {
 	},
 	onModeChange:function(mode) {
 		this.settings.mode = mode;
-		var scene = this.controller.getActiveStageController("card").activeScene();
-		this.onSwapScene(scene.sceneName, true);
+		var sceneController = this.controller.getStageController("main");
+		if (sceneController) {
+			var scene = sceneController.activeScene();
+			this.onSwapScene(scene.sceneName, true);
+		}
 	},
 	onBack:function(event) {
 		LBB.Util.log("> AppAssistant.onBack");
 		
 		var stageController = this.controller.getActiveStageController("card");
 		
-		// when the help scene was shown on start-up due to new version, it's the only scene on the stack
+		// when the about scene was shown on start-up due to new version, it's the only scene on the stack
 		// if that's the case, swap the scene out with the initial view
-		if(stageController.activeScene() && stageController.activeScene().sceneName == "help") {
-			LBB.Util.log("help scene is active");
+		if(stageController.activeScene() && stageController.activeScene().sceneName == "about") {
+			LBB.Util.log("about scene is active");
 			
 			if(stageController.getScenes().length == 1) {
 				// if it's the only scene, swap
@@ -249,19 +283,24 @@ var _AppAssistant = {
 	},
 	onSwapScene:function(scene, force) {
 		LBB.Util.log("> AppAssistant.onSwapScene");
+		
 		// TODO: figure out why pushScene doesn't work as expected
-		var controller = this.controller.getActiveStageController("card")
-		if(force || !controller.activeScene() || controller.activeScene().sceneName != scene) {
+		var controller = this.controller.getStageProxy("main");
+		if(controller && (force || !controller.activeScene() || controller.activeScene().sceneName != scene)) {
 			controller.swapScene({
 				name:scene,
 				transition:Mojo.Transition.crossFade,
 				disableSceneScroller:(scene == "main")
-			}, LBB.Model, LBB.Preferences);
+			});
 		}
 	},
 	onShowHelp:function() {
 		LBB.Util.log("> AppAssistant.onShowHelp");
 		this.controller.getActiveStageController("card").pushScene("help");
+	},
+	onShowAbout:function() {
+		LBB.Util.log("> AppAssistant.onShowAbout");
+		this.controller.getActiveStageController("card").pushScene("about");
 	},
 	checkVersion:function() {
 		try {
@@ -270,8 +309,8 @@ var _AppAssistant = {
 			var version = this.versionCookie.get();
 				
 			if(version != Mojo.appInfo.version) {
-				this.showHelp = true
-				LBB.Model.getInstance().update(version);
+				this.showAbout = true
+				LBB.Model.getInstance().update(version, Mojo.appInfo.version);
 				this.versionCookie.put(Mojo.appInfo.version);
 				
 				LBB.Util.log("Version cookie set to " + Mojo.appInfo.version);
@@ -281,16 +320,10 @@ var _AppAssistant = {
 		}
 	},
 	onUpgrade:function() {
-		new Mojo.Service.Request('palm://com.palm.applicationManager', {
-		    method: 'launch',
-		    parameters:  {
-		        id: "com.tiqtech.incontactplus",
-				params: {action:"upgrade",model:LBB.Model.getInstance(),preferences:LBB.Preferences.getInstance()}
-		    },
-		    onFailure:function(e) {
-				this.controller.getActiveStageController("card").activeScene().assistant.showUpgradeDialog(true);
-			}.bind(this)
-		});
+		LBB.Util.log("> AppAssistant.onUpgrade");
+		
+		var controller = this.controller.getStageController("main");
+		controller.delegateToSceneAssistant("onShowUpgrade");
 	}
 };
 

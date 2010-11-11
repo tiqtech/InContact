@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="base-build">
 
+	<property name="palm-bin" value="c:/program files (x86)/palm2/sdk/bin"/>
+
 	<target name="clean">
 		<delete dir="../tmp" />
 	</target>
@@ -10,13 +12,13 @@
 		<copy todir="../tmp">
 			<fileset dir="../../common"/>
 		</copy>
-		<copy todir="../tmp" overwrite="true" verbose="true">
+		<copy todir="../tmp" overwrite="true">
 			<fileset dir="../src"/>
 		</copy>
 	</target>
 
 	<target name="package" depends="init">
-		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-package.bat" output="package-result.log">
+		<exec executable="${palm-bin}/palm-package.bat" output="package-result.log">
 			<arg value="../tmp" />
 		</exec>
 		<loadfile property="ipkFile" srcFile="package-result.log">
@@ -38,7 +40,7 @@
 	</target>
 	
 	<target name="deploy" depends="package">
-		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-install.bat">
+		<exec executable="${palm-bin}/palm-install.bat">
 			<arg value="-d" />
 			<arg value="${device}"/>
 			<arg value="${ipkFile}"/>
@@ -46,7 +48,7 @@
 	</target>
 	
 	<target name="launch" depends="deploy">
-		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-launch.bat">
+		<exec executable="${palm-bin}/palm-launch.bat">
 			<arg value="-d" />
 			<arg value="${device}"/>
 			<arg value="${appId}" />
@@ -54,7 +56,7 @@
 	</target>
 
 	<target name="remove" depends="package">
-		<exec executable="c:/program files (x86)/palm2/sdk/bin/palm-install.bat">
+		<exec executable="${palm-bin}/palm-install.bat">
 			<arg value="-d" />
 			<arg value="${device}"/>
 			<arg value="-r" />

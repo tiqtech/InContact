@@ -8,6 +8,7 @@
     {"source": "app/js/QuickContact.js"},
     {"source": "app/js/MainAssistantBase.js"},
 	{"source": "app/js/PrefsAssistantBase.js"},
+	{"source": "app/js/EditContactAssistantBase.js"},
     {"source": "app/assistants/app-assistant.js"},
     {
         "scenes": "main",
@@ -18,12 +19,16 @@
         "source": "app/assistants/list-assistant.js"
     },
     {
-        "scenes": "help",
-        "source": "app/assistants/help-assistant.js"
+        "scenes": "about",
+        "source": "app/assistants/about-assistant.js"
     },
     {
         "scenes": "prefs",
         "source": "app/assistants/prefs-assistant.js"
+    },
+    {
+        "scenes": "help",
+        "source": "app/assistants/help-assistant.js"
     },
     {
     	"scenes": "edit-contact",

@@ -1,19 +1,10 @@
 {
 	"id": "com.tiqtech.incontact",
-	"version": "1.4.2",
+	"version": "1.4.3",
 	"vendor": "tiqtech.com",
 	"type": "web",
 	"noWindow":"true",
 	"main": "index.html",
 	"title": "InContact",
-	"icon": "icon.png",
-	"smallicon": "smallicon.png",
-	"splashicon": "icon-256x256.png",
-	"support": {
-		"url": "http://www.tiqtech.com/InContact",
-		"email": {
-			"address": "incontact-support@tiqtech.com",
-			"subject": "Question/Feedback"
-		}
-	}
+	"icon": "icon.png"
 }

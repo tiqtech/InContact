@@ -21,30 +21,7 @@
 	position:relative;
 	display:inline;
 	float:left;
-}
-
-.QuickContact .icon.phone
-{
 	-webkit-background-size:100% 100%;
-	background:url(../images/phone.png);
-}
-
-.QuickContact .icon.txt
-{
-	-webkit-background-size:100% 100%;
-	background:url(../images/txt.png);
-}
-
-.QuickContact .icon.email
-{
-	-webkit-background-size:100% 100%;
-	background:url(../images/email.png);
-}
-
-.QuickContact .icon.im
-{
-	-webkit-background-size:100% 100%;
-	background:url(../images/im.png);
 }
 
 .QuickContact .icon.inactive

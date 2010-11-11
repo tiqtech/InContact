@@ -29,20 +29,20 @@ var _ListAssistant = {
 		
 		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.getAppMenuModel("list"));
 
-		this.controller.listen($('list'), Mojo.Event.listReorder, this.handlers.onReorder);
-		this.controller.listen($('list'), Mojo.Event.listDelete, this.handlers.onDelete);
-		this.controller.listen($('list'), Mojo.Event.listTap, this.handlers.onSelect);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listReorder, this.handlers.onReorder);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listDelete, this.handlers.onDelete);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listTap, this.handlers.onSelect);
 		this.controller.watchModel(this.contactModel, this, this.handlers.handleModelChanged);
 		
-		$('list_admob').insert($L('Loading advertisement'));
-		$('list-no-contacts').insert($L('No Contacts'));
+		this.controller.get('list_admob').insert($L('Loading advertisement'));
+		this.controller.get('list-no-contacts').insert($L('No Contacts'));
 		//Mojo.Log.info("< ListAssistant.setup");
 	},
 	cleanup:function() {
 	
-		this.controller.listen($('list'), Mojo.Event.listReorder, this.handlers.onReorder);
-		this.controller.listen($('list'), Mojo.Event.listDelete, this.handlers.onDelete);
-		this.controller.listen($('list'), Mojo.Event.listTap, this.handlers.onSelect);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listReorder, this.handlers.onReorder);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listDelete, this.handlers.onDelete);
+		this.controller.listen(this.controller.get('list'), Mojo.Event.listTap, this.handlers.onSelect);
 		this.controller.watchModel(this.contactModel, this, this.handlers.handleModelChanged);
 	},
 	activate:function(event) {
@@ -94,7 +94,7 @@ var _ListAssistant = {
 	{
 		if(this.selected != null) this.selected.mojo.select(false);
 		
-		this.selected = $("ql_"+event.item.id);
+		this.selected = this.controller.get("ql_"+event.item.id);
 		this.selected.mojo.select(true);
 		
 		LBB.Util.enableEditMenu(this.controller, true);
@@ -102,7 +102,7 @@ var _ListAssistant = {
 	onContactSelected:function(contact)
 	{
 		this.contactModel.getContacts().push(contact);
-		this.loadContacts($("list"), this.contactModel.getContacts().length-1, 1)
+		this.loadContacts(this.controller.get("list"), this.contactModel.getContacts().length-1, 1)
 		
 		this.markModified();
 	},

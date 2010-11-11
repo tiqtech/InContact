@@ -89,61 +89,8 @@ LBB._Model = {
 	save:function() {
 		LBB.Model.save();
 	},
-	update:function(version) {
-		LBB.Util.log("> Model.update version=", version);
-		
-		if(!version) version = "1.0.0";
-		
-		if(!this.contacts) return;
-		
-		// * changed contact selections from data to contactPointId
-		if(version == "1.0.0") {
-			LBB.Util.log("updating to version 1.1.0");
-
-			version = "1.1.0";
-			// new instances won't have this.contacts
-			for(var i=0;i<this.contacts.length;i++) {
-				var c = this.contacts[i];
-
-				this._updateEntry(c, "phone");
-				this._updateEntry(c, "sms");
-				this._updateEntry(c, "email");
-				this._updateEntry(c, "im");
-			}
-		}
-		
-		if(version == "1.1.0") {
-			LBB.Util.log("updating to 1.2.1");
-			
-			version = "1.2.1";
-			this.pages = [new LBB.Page(null, this.contacts)];
-			
-		}
-		
-		this.save();
-	},
-	// needed for data model update from 1.0.0 to 1.1.0
-	_updateEntry:function(c, type, comparator) {
-		//LBB.Util.log("> _updateEntry");
-		
-		var map = { "phone":"phoneNumbers", "sms":"phoneNumbers", "email":"emailAddresses", "im":"imNames" };
-		
-		var s = c.qc.selections[type];
-		if(s != Mojo.Widget.QuickContact.SelectAuto && s != Mojo.Widget.QuickContact.SelectNone) {
-			var found = false;
-			for(var i=0;i<c[map[type]].length;i++) {
-				var n = c[map[type]][i];
-				if(s == n.id || s == n.value) {
-					c.qc.selections[type] = n.id;
-					found = true;
-					break;
-				}
-			}
-			
-			if(!found) {
-				c.qc.selections[type] = Mojo.Widget.QuickContact.SelectAuto;
-			}
-		}
+	update:function(version, targetVersion) {
+		// base update does nothing
 	},
 	log:function() {
 		var s = "[";
@@ -165,63 +112,88 @@ LBB._Model = {
 LBB.Page = Class.create(LBB._Page);
 LBB.Model = Class.create(LBB._Model);
 
-LBB.Model._instance = null;
 LBB.Model._key = "model";
-LBB.Model._db = null;
-LBB.Model.load = function(db, callback)
+LBB.Model.load = function(db, provided, callback)
 {
 	try {
-		this._db = db;
-		this._db.get(
-			this._key,
-			function(m) {
-				try {
-					LBB.Util.log("> LBB.Model.load.get");
-					
-					Mojo.Log.info(LBB.Model.prototype.initialize);
-					
-					this._instance = new LBB.Model();
-					for(var k in m) {
-						// have to do some custom processing because pages contains custom objects
-						// without this, i'd have access to data but not methods since they aren't serialized
-						if(k == "pages") {
-							var pages = m[k];
-							this._instance[k] = [];
-							for(var i=0;i<pages.length;i++) {
-								this._instance[k].push(new LBB.Page());
-								for(var prop in pages[i]) {
-									this._instance[k][i][prop] = pages[i][prop];
-								}
-							}
-						} else {
-							this._instance[k] = m[k];
-						}
-					}
-					
-					this.loaded = true;
-					
-					if(callback) {
-						callback();
-					}
-				} catch(e) {
-					LBB.Util.error("LBB.Model.load.get", e);
-				}
-			}.bind(this),
-			function(e) {
-				LBB.Util.log("Unable to get model",e);
-				this._instance = new LBB.Model();
-			}
-		);
+		this.setDatabase(db);
+		this.setInstance(new LBB.Model());
+		
+		db.get(this._key, this.onLoadComplete.bind(this, callback, provided), function(e){
+			LBB.Util.log("Unable to get model", e);
+		});
 	} catch (e) {
 		LBB.Util.error("LBB.Model.load", e);
 	}
 };
 
+LBB.Model.onLoadComplete = function(callback, externalContacts, m) {
+	try {
+		LBB.Util.log("> LBB.Model.onLoadComplete");
+		
+		var inst = this.getInstance();
+		
+		for(var k in m) {
+			// have to do some custom processing because pages contains custom objects
+			// without this, i'd have access to data but not methods since they aren't serialized
+			if(k == "pages") {
+				var pages = m[k];
+				inst[k] = [];
+				for(var i=0;i<pages.length;i++) {
+					inst[k].push(new LBB.Page());
+					for(var prop in pages[i]) {
+						inst[k][i][prop] = pages[i][prop];
+					}
+				}
+			} else {
+				inst[k] = m[k];
+			}
+		}
+		
+		this.importData(externalContacts);
+		
+		this.loaded = true;
+		
+		if(callback) {
+			callback();
+		}
+	} catch(e) {
+		LBB.Util.error("LBB.Model.load.get", e);
+	}
+}
+
+LBB.Model.importData = function(externalContacts) {
+	var inst = this.getInstance();
+	
+	if(externalContacts && externalContacts.length > 0 && inst.pages.length > 0) {
+		for(var i=0;i<externalContacts.length;i++) {
+			var c = inst.pages[0].findContactById(externalContacts[i].id);
+			if(c.index == -1) {
+				inst.pages[0].contacts.push(externalContacts[i]);
+			}
+		}
+		
+		// save addition of external contacts
+		this.save();
+	}
+}
+
 LBB.Model.save = function() {
-	//Mojo.Log.info("> LBB.Model.save");
-	this._db.add(this._key, this._instance);	
+	this.getDatabase().add(this._key, this.getInstance());	
 };
 
 LBB.Model.getInstance = function() {
-	return this._instance;
+	return Mojo.Controller.getAppController().assistant._model;
+}
+
+LBB.Model.setInstance = function(inst) {
+	Mojo.Controller.getAppController().assistant._model = inst;
+}
+
+LBB.Model.getDatabase = function() {
+	return Mojo.Controller.getAppController().assistant._modelDatabase;
+}
+
+LBB.Model.setDatabase = function(db) {
+	Mojo.Controller.getAppController().assistant._modelDatabase = db;
 }

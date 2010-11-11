@@ -6,45 +6,40 @@ var _QuickContact = {
 			"container":"grid",
 			"selected":false
 		};
-		this.handlers = new HandlerManager(this, ["onPhone", "onEmail", "onTxt", "onIM"])
+		this.handlers = new HandlerManager(this, ["onIconTap","onPhone","onSMS","onIM","onEmail"])
 	},
 	setup:function() {
-		//Mojo.Log.info("> QuickContact.setup");
+		LBB.Util.log("> QuickContact.setup");
 		
 		// merge attributes provided by setupWidget
 		// with this instance's default attributes
-		for(var key in this.controller.attributes)
+		for (var key in this.controller.attributes) {
 			this.attributes[key] = this.controller.attributes[key];
+		}
+		
+		var formatters = {"contactName":Mojo.Widget.QuickContact.formatContactName}
 			
 		this.attributes.id = this.controller.element.id;
 		var prefs = LBB.Preferences.getInstance();
 		
 		this.initContact();
-		
-		var content = Mojo.View.render({"template":"QuickContact/"+this.attributes.container, attributes:this.attributes, object:this.controller.model});
-		this.controller.element.innerHTML = content;
-		
-		//if(prefs.getProperty("asyncPhoto")) {
-		//	this.loadContactPhoto.async(this);
-		//} else {
-			this.loadContactPhoto();
-		//}
-		
-		Mojo.Event.listen($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.handlers.onPhone, true);
-		Mojo.Event.listen($(this.controller.element.id + "_email"), Mojo.Event.tap, this.handlers.onEmail, true);
-		Mojo.Event.listen($(this.controller.element.id + "_txt"), Mojo.Event.tap, this.handlers.onTxt, true);
-		Mojo.Event.listen($(this.controller.element.id + "_im"), Mojo.Event.tap, this.handlers.onIM, true);
+	
+		this.controller.element.update(Mojo.View.render({"template":"QuickContact/"+this.attributes.container, attributes:this.attributes, object:this.controller.model, formatters:formatters}));
+		this.loadContactPhoto();
 		
 		this.controller.exposeMethods(["select", "render"]);
 		this.render();
-	},
-	cleanup:function() {
-		//Mojo.Log.info("> QuickContact.cleanup");
 		
-		Mojo.Event.stopListening($(this.controller.element.id + "_phone"), Mojo.Event.tap, this.handlers.onPhone, true);
-		Mojo.Event.stopListening($(this.controller.element.id + "_email"), Mojo.Event.tap, this.handlers.onEmail, true);
-		Mojo.Event.stopListening($(this.controller.element.id + "_txt"), Mojo.Event.tap, this.handlers.onTxt, true);
-		Mojo.Event.stopListening($(this.controller.element.id + "_im"), Mojo.Event.tap, this.handlers.onIM, true);
+		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_0"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_1"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_2"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_3"), Mojo.Event.tap, this.handlers.onIconTap, true);
+	},
+	cleanup:function() {		
+		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_0"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_1"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_2"), Mojo.Event.tap, this.handlers.onIconTap, true);
+		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_3"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		
 		this.handlers.release();
 	},
@@ -52,31 +47,32 @@ var _QuickContact = {
 		try {
 			if(this.attributes.selected) {
 				this.displayIcons();
-				$(this.attributes.id).className = this.attributes.container + " QuickContact selected";
+				this.controller.get(this.attributes.id).className = this.attributes.container + " QuickContact selected";
 			} else {
-				$(this.attributes.id).className = this.attributes.container + " QuickContact";
+				this.controller.get(this.attributes.id).className = this.attributes.container + " QuickContact";
 			}
 		} catch(e) {
-			Mojo.Log.error("Render issue for '" + this.attributes.id + "': " + e);
+			LBB.Util.error("Render issue for '" + this.attributes.id + "': " + e);
 		}
 	},
 	displayIcons:function() {
 		LBB.Util.log("> QuickContact.displayIcons");
-		
-		// utility function to set active/inactive for button
-		var swap = function(id, type, obj) {
-			var p = Mojo.Widget.QuickContact.getPreference(this.controller.model, type);
+
+		for(var i=0;i<4;i++) {
+			var p = this.controller.model.qc.selections[i];
+			var cp = Mojo.Widget.QuickContact.getPreference(this.controller.model, i);
+			var classes = ["icon"];
 			
-			var c = (p == Mojo.Widget.QuickContact.SelectNone || !obj) ? ["inactive","active"] : ["active","inactive"];
-	
-			$(id).addClassName(c[0]);
-			$(id).removeClassName(c[1]);
-		}.bind(this);
-		
-		swap(this.attributes.id + "_phone", "phone", this.controller.model.phoneNumbers);
-		swap(this.attributes.id + "_email", "email", this.controller.model.emailAddresses);
-		swap(this.attributes.id + "_txt", "sms", this.controller.model.phoneNumbers);
-		swap(this.attributes.id + "_im", "im", this.controller.model.imNames);
+			var icon = this.controller.get(this.attributes.id+"_"+i);
+			if(cp && cp != Mojo.Widget.QuickContact.SelectNone) {
+				icon.setStyle({"background":"url(images/" + p.icon +".png)"});
+				classes.push("active");
+			} else {
+				classes.push("inactive");
+			}
+			
+			icon.className = classes.join(" ");
+		}
 	},
 	initContact:function() {
 		LBB.Util.log("> QuickContact.initContact");
@@ -91,94 +87,56 @@ var _QuickContact = {
 			var email = Mojo.Widget.QuickContact.getDefaultEmail(c);
 			var im = Mojo.Widget.QuickContact.getDefaultIM(c);
 			
-			c.qc.selections.phone = (phone) ? phone.id : Mojo.Widget.QuickContact.SelectNone;
-			c.qc.selections.sms = (sms) ? sms.id : Mojo.Widget.QuickContact.SelectNone;
-			c.qc.selections.email = (email) ? email.id : Mojo.Widget.QuickContact.SelectNone;
-			c.qc.selections.im = (im) ? im.id : Mojo.Widget.QuickContact.SelectNone;
+			c.qc.selections['0'] = {'index':0,'icon':'phone','action':'phone','details':(phone) ? phone.id : null};
+			c.qc.selections['1'] = {'index':1,'icon':'txt','action':'sms','details':(sms) ? sms.id : null};
+			c.qc.selections['2'] = {'index':2,'icon':'email','action':'email','details':(email) ? email.id : null};
+			c.qc.selections['3'] = {'index':3,'icon':'im','action':'im','details':(im) ? im.id : null};
 		}
 	},
-	select:function(selected) {
-		//Mojo.Log.info("> QuickContact.onSelect");
-				
+	select:function(selected) {				
 		this.attributes.selected = (selected == true);
 		this.render();
 	},
 	loadContactPhoto:function() {
-		//Mojo.Log.info("> QuickContact.loadContactPhoto");
-		
 		var c = this.controller.model;
-		this.getDimensions(c);
+		
+		// if photos haven't been initialized, do so
+		if(c.qc.largePhoto == null) {
+			c.qc.largePhoto = (c.pictureLocBig) ? c.pictureLocBig : c.pictureLoc;
+			c.qc.smallPhoto = c.pictureLoc;
+		}
 			
 		// resize only applies to grid mode
 		if(this.attributes.container == "grid") {
 
-			var main = $(this.attributes.id + "_main");
+			var main = this.controller.get(this.attributes.id + "_photo");
 			var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding*2)
-			
-			// calc ratio of photo height/width to size of QC			
-			var wRatio = c.qc.photoDimensions.w/size;
-			var hRatio = c.qc.photoDimensions.h/size;
-			
-			var scale = {w:"auto",h:"auto"};
-			var pos = {left:"0%",top:"0%"};
-			
-			if(wRatio > hRatio) {
-				scale.h = "100%";
-				pos.left = Math.round((wRatio/hRatio)*50) + "%";
-			} else {
-				scale.w = "100%";
-				pos.top = Math.round((hRatio/wRatio)*50) + "%";
-			}
-			
-			if(c.qc.largePhoto == this.defaultPhoto) {
-				c.qc.largePhoto = Mojo.appPath.substring(7) + this.defaultPhoto;
-			}
-			
-			var photoSize = (size*2);
-			var photo = "/var/luna/data/extractfs" + encodeURIComponent(c.qc.largePhoto) + ":0:0:"+photoSize+":"+photoSize+":3";
+			var photo = "/var/luna/data/extractfs" + encodeURIComponent(c.qc.largePhoto) + ":0:0:"+size+":"+size+":4";
 	
-			main.style.cssText += "background:url('" + photo + "');-webkit-background-size:" + scale.w + " " + scale.h + ";background-position:center center;background-repeat:no-repeat;";
+			main.style.cssText += "background:url('" + photo + "');background-position:center center;background-repeat:no-repeat;";
 		} else { // list view
-			$(this.attributes.id + "_img").setAttribute('src', c.qc.smallPhoto);
+			this.controller.get(this.attributes.id + "_img").setAttribute('src', c.qc.smallPhoto);
 		}
-		
-		//Mojo.Log.info("< QuickContact.loadContactPhoto");
 	},
-	getDimensions:function(c) {
+	onIconTap:function(event) {
+		LBB.Util.log("> QuickContact.onIconTap");
+		var c = this.controller.get(event.currentTarget);
 		
-		// TODO: leaving this check out for now until i find a better way to check for missing pictures
-		//if(c.qc.photoDimensions.h && c.qc.photoDimensions.w) return;
-		
-		var img = new Element('img', {'style':'position:absolute;visibility:hidden;z-index:-10000'});
-		$(this.attributes.id).insert(img);
-		
-		
-		// if photos haven't been initialized, do so
-		if(c.qc.largePhoto == null) {
-			c.qc.largePhoto = c.pictureLocBig;
-			c.qc.smallPhoto = c.pictureLoc;
-		}
-		
-		// get dimensions
-		img.setAttribute('src', c.qc.largePhoto);
-		
-		// picture is gone, use default
-		if(img.offsetWidth == 0) {
-			c.qc.largePhoto = c.qc.smallPhoto = this.defaultPhoto;
-			img.setAttribute('src', c.qc.largePhoto);
-		}
-				
-		c.qc.photoDimensions.h = img.offsetHeight;
-		c.qc.photoDimensions.w = img.offsetWidth;
-		
-		// no longer needed once size determined
-		img.remove();
+		var index = c.id.substring(c.id.lastIndexOf("_")+1);
+		var s = this.controller.model.qc.selections[index]
+		var action = s.action;
+		var operations = {"phone":this.handlers.onPhone,"sms":this.handlers.onSMS,"im":this.handlers.onIM,"email":this.handlers.onEmail};
+		  
+		operations[action](s.details);
 	},
-	onPhone:function(event) {	
+	onPhone:function(id) {
+		LBB.Util.log("> QuickContact.onPhone");
+
+		var phone = this.getPointById("phone", id);
 		var p = LBB.Preferences.getInstance();
 		
 		var param = {};
-		param[(p.getProperty("autoDial") == true) ? "number" : "prefill"] = Mojo.Widget.QuickContact.getDefaultPhone(this.controller.model, "phone").value;
+		param[(p.getProperty("autoDial") == true) ? "number" : "prefill"] = phone.value;
 		
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
 		    method: 'launch',
@@ -190,15 +148,16 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "phone");
 	},
-	onTxt:function(event) {
-	    var p = Mojo.Widget.QuickContact.getDefaultPhone(this.controller.model, "sms");
+	onSMS:function(id) {
+	    var phone = this.getPointById("sms", id);
+		
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
 		     method: 'launch',
 		     parameters: {
 		     	id: "com.palm.app.messaging",
 		     	params: {
 		          	composeRecipients: [{
-						address: p.value
+						address: phone.value
 					}]
 					/* contact point method */
 					//personId: this.controller.model.id,
@@ -210,8 +169,9 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "sms");
 	},
-	onIM:function(event) {
-		var im = Mojo.Widget.QuickContact.getDefaultIM(this.controller.model);
+	onIM:function(id) {
+		var im = this.getPointById("im", id);
+		
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
 		     method: 'launch',
 		     parameters: {
@@ -233,8 +193,8 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "im");
 	},
-	onEmail:function(event) {
-		var email = Mojo.Widget.QuickContact.getDefaultEmail(this.controller.model);
+	onEmail:function(id) {
+		var email = this.getPointById("email", id);
 
 		this.controller.scene.serviceRequest("palm://com.palm.applicationManager", {
 			method:"open",
@@ -249,8 +209,11 @@ var _QuickContact = {
 		event.stopPropagation();
 		
 		if(closeAction == "any" || closeAction == action) {
-			window.close();
+			this.controller.window.close();
 		}
+	},
+	getPointById:function(action, id) {
+		return Mojo.Widget.QuickContact.getPointById(this.controller.model, action, id);
 	}
 };
 
@@ -260,28 +223,45 @@ Mojo.Widget.QuickContact = Class.create(_QuickContact);
 
 Mojo.Widget.QuickContact.SelectAuto = "QuickContact.Selection.Auto";
 Mojo.Widget.QuickContact.SelectNone = "QuickContact.Selection.None";
+Mojo.Widget.QuickContact.ActionMap = {
+	"phone":{"list":"phoneNumbers","label":$L("Phone")},
+	"sms":{"list":"phoneNumbers","label":$L("SMS")},
+	"email":{"list":"emailAddresses","label":$L("Email")},
+	"im": {"list": "imNames","label": $L("IM")}
+}
+
+Mojo.Widget.QuickContact.getPointById = function(contact, action, id) {
+	var list = contact[this.ActionMap[action].list];
+	if(!list) return;
+	
+	for(var i=0;i<list.length;i++) {
+		if(list[i].id == id) {
+			return list[i];
+		}
+	}
+};
 
 Mojo.Widget.QuickContact.getDefaultEmail = function(contact) {
-	var pref = this.getPreference(contact, "email");
-	if(pref == null || pref == Mojo.Widget.QuickContact.SelectAuto) {
+	//var pref = this.getPreference(contact, "email");
+	//if(pref == null || pref == Mojo.Widget.QuickContact.SelectAuto) {
 		pref = (contact.emailAddresses) ? contact.emailAddresses[0] : this.SelectNone;
-	}
+	//}
 	
 	return pref;
 };
 
 Mojo.Widget.QuickContact.getDefaultIM = function(contact) {
-	var pref = this.getPreference(contact, "im");
-	if(pref == null || pref == Mojo.Widget.QuickContact.SelectAuto) {
+	//var pref = this.getPreference(contact, "im");
+	//if(pref == null || pref == Mojo.Widget.QuickContact.SelectAuto) {
 		pref = (contact.imNames) ? contact.imNames[0] : this.SelectNone;
-	}
+	//}
 
 	return pref;
 };
 
 Mojo.Widget.QuickContact.getDefaultPhone = function(contact, type) {
-	var pref = this.getPreference(contact, type);
-	if(pref == null || pref == this.SelectAuto) {
+	//var pref = this.getPreference(contact, type);
+	//if(pref == null || pref == this.SelectAuto) {
 		if (contact.phoneNumbers) {
 			var numbers = {};
 			var pn = contact.phoneNumbers;
@@ -294,55 +274,70 @@ Mojo.Widget.QuickContact.getDefaultPhone = function(contact, type) {
 			
 			if (numbers["_3"]) {
 				n = numbers["_3"];
+			} else if (numbers["_1"]) {
+				n = numbers["_1"];
+			} else if (numbers["_0"]) {
+					n = numbers["_0"];
 			}
-			else 
-				if (numbers["_1"]) {
-					n = numbers["_1"];
-				}
-				else 
-					if (numbers["_0"]) {
-						n = numbers["_0"];
-					}
-			
+		
 			pref = n;
 		} else {
 			pref = this.SelectNone;
 		}
+	//}
+	
+	return pref;
+};
+
+Mojo.Widget.QuickContact.getPreference = function(contact, key) {
+	LBB.Util.log("> QuickContact.getPreference", type);
+	
+	var map = { "phone":"phoneNumbers", "sms":"phoneNumbers", "email":"emailAddresses", "im":"imNames" };
+	
+	// kick out if no selection
+	if(!contact.qc.selections || !contact.qc.selections[key] || !contact.qc.selections[key].details) {
+		return;
+	}
+	
+	var type = contact.qc.selections[key].action;
+	var pref = contact.qc.selections[key].details;
+
+	// if it's Auto or None, return that 
+	if(pref != this.SelectAuto && pref != this.SelectNone && contact[map[type]]) {
+		// try to match contactpoint.id with preference 
+		for(var i=0;i<contact[map[type]].length;i++) {
+			var item = contact[map[type]][i];
+			if(item.id == pref) {
+				return item;
+			}
+		}
+		
+		// made it here so must be an invalid pref (e.g. contact point removed)
+		// set back to auto
+		pref = this.SelectAuto;
 	}
 	
 	return pref;
 };
 
-Mojo.Widget.QuickContact.getPreference = function(contact, type) {
-	LBB.Util.log("> QuickContact.getPreference", type);
-	
-	var map = { "phone":"phoneNumbers", "sms":"phoneNumbers", "email":"emailAddresses", "im":"imNames" };
-	
-	// should always be true since it's initialized in initContact
-	if(contact.qc.selections) {
-		var pref = contact.qc.selections[type];
-		
-		LBB.Util.log(type, pref);
-		
-		// if it's Auto or None, return that 
-		if(pref != this.SelectAuto && pref != this.SelectNone && contact[map[type]]) {
-			// try to match contact.id with preference 
-			for(var i=0;i<contact[map[type]].length;i++) {
-				var item = contact[map[type]][i];
-				if(item.id == pref) {
-					return item;
-				}
-			}
-			
-			// made it here so must be an invalid pref (e.g. contact point removed)
-			// set back to auto
-			pref = this.SelectAuto;
-		}
-		
-		return pref;
-	}
-};
-
 Mojo.Widget.QuickContact.stripNonNumeric = function(s) {
   return s.replace(/[^0-9]/gi, "");
 };
+
+Mojo.Widget.QuickContact.formatContactName = function(value, model) {
+	var name = "";
+	
+	if(model.firstName) {
+		name = model.firstName;
+	}
+	
+	if(model.lastName) {
+		name += " " + model.lastName;
+	}
+	
+	if(name.length == 0 && model.companyName) {
+		name = model.companyName;
+	}
+	
+	return name;
+}

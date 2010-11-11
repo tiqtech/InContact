@@ -3,26 +3,25 @@ var LBB = {};
 LBB.Util =
 {
 	_log:[],
+	_isDebug:(Mojo.appInfo.id.indexOf(".debug")>0),
 	appMenuModel: {items:[]},
 	cmdMenuModel: {
 	    visible: true,
 	    items: [
-       		//{label: $L('Add'), icon:"add_icon", command:'add'},
        		{},
        		{ items: [] },	// placeholder for items from preferences
        		{}
-       		//{label: $L('Edit'), command:'scene-contact'}
 	    ]
 	},
 	log:function() {
-		if(Mojo.appInfo.id.indexOf(".debug") > 0) {
+		if(this._isDebug) {
 			this._log.push($A(arguments).join(" "));
 		}
 		
 		Mojo.Log.info.apply(Mojo.Log, arguments);
 	},
 	error:function() {
-		if(Mojo.appInfo.id.indexOf(".debug") > 0) {
+		if(this._isDebug) {
 			this._log.push($A(arguments).join(" "));
 			this.emailLog();
 		}
@@ -63,7 +62,9 @@ LBB.Util =
 		
 		i.push({label: $L("Preferences"),command: Mojo.Menu.prefsCmd});
 		i.push({label: $L("Help"),command: Mojo.Menu.helpCmd});
+		i.push({label: $L("About"),command: "scene-about"});
 		
+		// upgrade code
 		if(Mojo.appInfo.id.substring(Mojo.appInfo.id.length-4) != "plus") {
 			i.push({label: $L("Upgrade"), command: "upgrade"});
 		}
@@ -87,10 +88,8 @@ LBB.Util =
 		}
 	},
 	setupCommandMenu:function(controller, scene) {
-		//Mojo.Log.info("setupCommandMenu");
+		LBB.Util.log("> LBB.Util.setupCommandMenu");
 				
-		this.cmdMenuModel.items[2].toggleCmd = 'scene-' + scene;
-		
 		this.updateCommandMenuModel();
 
 		controller.setupWidget(Mojo.Menu.commandMenu, {}, this.cmdMenuModel);
@@ -118,7 +117,7 @@ LBB.Util =
 					var themeNode = controller.get('theme-style');
 					
 					if(themeNode == null) {
-						$(document.body).insert(content);
+						controller.get(controller.document.body).insert(content);
 					} else {
 						themeNode.replace(content);
 					}
@@ -137,7 +136,7 @@ LBB.Util =
 		var updateIconRequest = new Mojo.Service.Request('palm://com.palm.applicationManager', {
     		method: 'updateLaunchPointIcon',
     		parameters: { launchPointId: Mojo.appInfo.id + '_default', icon: iconUrl},
-			onSuccess: function(e) { },
+			onSuccess: function(e) { Mojo.Log.info("Set icon"); },
 			onFailure: function(e) { Mojo.Log.info("Failed to set icon",Object.toJSON(e)); }
 		});
 	}
@@ -178,25 +177,25 @@ var HandlerManager = Class.create({
 	}
 });
 
-Function.prototype.async = function(caller) {
-	var func = this;
-	var args = [];
-	
-	for(var i=1;i<arguments.length;i++) {
-		args.push(arguments[i]);
-	}
-		
-	var f = function() {
-		var _args = args;
-		var c = caller;
-		func.apply(c, _args);
-	};
-	
-	new Ajax.Request(Mojo.appPath + "/appinfo.json", {
-		method:"get",
-		onSuccess:f
-	});
-}
+//Function.prototype.async = function(caller) {
+//	var func = this;
+//	var args = [];
+//	
+//	for(var i=1;i<arguments.length;i++) {
+//		args.push(arguments[i]);
+//	}
+//		
+//	var f = function() {
+//		var _args = args;
+//		var c = caller;
+//		func.apply(c, _args);
+//	};
+//	
+//	new Ajax.Request(Mojo.appPath + "/appinfo.json", {
+//		method:"get",
+//		onSuccess:f
+//	});
+//}
 
 /*
 var LoggingClass = {

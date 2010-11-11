@@ -1,0 +1,106 @@
+{
+	"General":[
+		{
+			"key":"add",
+			"title":"Add Contacts",
+			"body":"InContact does not import any contacts initially.  Instead, you can add your most often used contacts by: <ol><li>Tapping the Person icon in the top left</li><li>Selecting \"Add\" from the menu.\nYou'll then be presented a list of all contacts on your phone, excluding those already selected.</li><li>Tap the desired contact and it will be added to InContact!</li></ol>",
+			"seeAlso":["edit", "remove"],
+			"version":"com.tiqtech.incontact"
+		}, {
+			"key":"add",
+			"title":"Add Contacts",
+			"body":"InContact does not import any contacts initially.  Instead, you can add your most often used contacts by: <ol><li>Tapping the Person icon in the top left</li><li>Selecting \"Add\" from the menu.\nYou'll then be presented a list of all contacts on your phone, excluding those already selected on this page.</li><li>Tap the desired contact and it will be added to InContact!</li></ol><b>Note:</b> A contact can be added to every page but only once per page.",
+			"seeAlso":["edit", "remove"],
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"remove",
+			"title":"Remove a Contact",
+			"body":"To remove a contact you no longer need:<ol><li>Tap the contact</li><li>Tap the Person icon in the top left</li><li>Tap \"Remove\"</li></ol>"
+		}, {
+			"key":"edit",
+			"title":"Edit a Contact",
+			"body":"To edit a contact:<ol><li>Tap the contact</li><li>Tap the Person icon in the top left</li><li>Tap \"Edit\"</li></ol>For each action, you may choose which number or address is used by tapping the number or address and selecting your preference from the menu",
+			"version":"com.tiqtech.incontact"
+		}, {
+			"key":"edit",
+			"title":"Edit a Contact",
+			"body":"To edit a contact:<ol><li>Tap the contact</li><li>Tap the Person icon in the top left</li><li>Tap \"Edit\"</li></ol>For each slot, you can select your preferred icon, action, and number or address by tapping each.  If a number or address does not exist for a particular action, \"None Available\" will be displayed in place of the number or address.",  
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"reorder",
+			"title":"Reorder Contacts",
+			"body":"To reorder the display of contacts:<ol><li>Tap and hold a contact.  The photo will become partially transparent.</li><li>Drag the contact to its new position.  The other contacts will move to reflect the new order.</li></ol>"
+		}, {
+			"key":"modes",
+			"title":"Normal/Driving Mode",
+			"body":"InContact provides the unique ability to switch between normal and driving modes.  In driving mode, the contact photos and icons are larger and easier to find and tap while driving.  There is also a preference to start in normal (the default) or driving mode.",
+			"seeAlso":["startMode"]
+		}
+	],
+	"Pages":[
+		{
+			"key":"pageOverview",
+			"title":"Overview of Pages",
+			"body":"Pages are unique to InContact Plus and allow you to group your contacts in whatever way is easiest for you.  To move between pages, flick the page left or right just as you would in the Palm launcher.<br/><br/>In addition to grouping, pages also allow you to email or SMS all the contacts on the page together.",
+			"seeAlso":["pageAdd","pageRename","pageRemove","pageReorder","pageEmailSMS"],
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"pageAdd",
+			"title":"Add a Page",
+			"body":"You can add additional pages to group your contacts.  To do so, tap the Page icon in the top right and select \"Add\".  The new page will be added to the end of the list.",
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"pageRename",
+			"title":"Rename a Page",
+			"body":"To rename a page:<ol><li>Tap the Page icon in the top right,</li><li>Select \"Rename\"</li><li>Change the title in the dialog displayed and tap OK.</li></ol>",
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"pageRemove",
+			"title":"Remove a Page",
+			"body":"To remove pages you no longer need:<ol><li>Tap the Page icon in the top right,</li><li>Select \"Remove\"</li><li>Tap either:<ul><li>\"Remove Page and Contacts\" to delete the page and remove its contacts from InContact or</li><li>\"Remove Page Only\" to delete the page and shift the contacts to the next page</li></ul></li></ol>",
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"pageEmailSMS",
+			"title":"Email/SMS a Page",
+			"body":"A unique feature of InContact is the ability to email or SMS an entire page of contacts with one tap.  To email or SMS everyone on a page:<ol><li>Tap the Page icon in the top right,</li><li>Select the \"Actions\" submenu</li><li>Select either Email or SMS.</li></ol>InContact will check each contact and include any selected address (for Email) or number (for SMS) and launch the appropriate messaging program.",
+			"version":"com.tiqtech.incontactplus"
+		} 
+	],
+	"Preferences":[
+		{
+			"key":"autodial",
+			"title":"Auto-Dial Phone",
+			"body":"When Auto-Dial is enabled, the phone action will launch the Phone application and dial the selected number.<br/>When disabled, the Phone will be launched and the number prefilled but the call will not be initiated."
+		}, {
+			"key":"allowRotate",
+			"title":"Allow Display Rotation",
+			"body":"When this preference is enabled, InContact will rotate its display with the phone.  When disabled, the contacts will always be oriented towards the top."
+		}, {
+			"key":"launcherIcon",
+			"title":"Launcher Icon",
+			"body":"Allows you to select which icon will be used for InContact in your application list."
+		}, {
+			"key":"appTheme",
+			"title":"Theme",
+			"body":"Allows you to select which color theme will be used for InContact."
+		}, {
+			"key":"startMode",
+			"title":"Start Up Mode",
+			"body":"Allows you to select which mode (Normal or Driving) will be used when InContact starts.",
+			"seeAlso":["modes"]
+		}, {
+			"key":"closeAction",
+			"title":"Close on Action",
+			"body":"InContact can be configured to close itself after either a phone call or any action.  The default is to remain open regardless of action."
+		}, {
+			"key":"namePosition",
+			"title":"Contact Name Position",
+			"body":"Allows you to select where the contacts' names are displayed (at the top or bottom of the photo) or hidden altogether."
+		}, {
+			"key":"appShortcuts",
+			"title":"App Shortcuts",
+			"body":"The shortcuts to the Palm contact apps can be customized to show the items you prefer in any order you wish.  To include the app shortcut in the menu group at the bottom of the screen, simply tap the checkbox to the right of the app name.  A checkmark means it will be displayed.<br/><br/>To change the order of the icons, tap and hold the row of the list until it becomes slightly transparent.  Then, drag it to the new position in the list and release.",
+			"version":"com.tiqtech.incontactplus"
+		}
+	]
+}

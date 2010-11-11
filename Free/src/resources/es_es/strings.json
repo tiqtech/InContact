@@ -1,6 +1,7 @@
 {
 	"Loading advertisement":"Cargando publicidad",
 	"Select a Contact":"Selecciona un Contacto",
+	"Tap the person icon above to add, edit, or remove a contact.":"Toque en el icono de arriba para agregar, editar o borrar un contacto.",
 	
 	"Driving Mode":"Modo de Conducción",
 	"Normal Mode":"Modo Normal",
@@ -9,7 +10,9 @@
 	"Add":"Añadir",
 	"Remove":"Borrar",
 	"Edit":"Editar",
+	"Upgrade":"Mejorar",
 	
+	"Contact":"Contacto",
 	"Contacts":"Contactos",
 	
 	"Phone":"Teléfono",

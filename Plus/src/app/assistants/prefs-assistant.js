@@ -9,7 +9,7 @@ var _PrefsAssistant = {
 		LBB.Util.log("> PrefsAssistant.setup");
 	
 		this.prefs = LBB.Preferences.getInstance();
-		$('launcherPreferencesTitle').insert($L("Launcher"));
+		this.controller.get('launcherPreferencesTitle').insert($L("App Shortcuts"));
 		this.launcherItems = this.prefs.getProperty("launcherApps");
 
 		this.controller.setupWidget("launcherPreferencesList", {
@@ -23,10 +23,10 @@ var _PrefsAssistant = {
 			}
 		);
 		
-		this.controller.listen($('launcherPreferencesList'), Mojo.Event.listReorder, this.handlers.onLauncherReorder);
+		this.controller.listen(this.controller.get('launcherPreferencesList'), Mojo.Event.listReorder, this.handlers.onLauncherReorder);
 	},
 	onLauncherReorder:function(event) {
-		LBB.Preferences.getInstance().setProperty("launcherApps", this.launcherItems);
+		this.prefs.setProperty("launcherApps", this.launcherItems);
 	}
 };
 

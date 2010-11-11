@@ -7,10 +7,10 @@ var _MainAssistant = {
 	setup:function($super) {
 		$super();
 		
-		$('pageButton').show();
-		$('pageTicks').show();
+		this.controller.get('pageButton').show();
+		this.controller.get('pageTicks').show();
 		
-		this.controller.listen($('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
+		this.controller.listen(this.controller.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
 	},
 	activate:function($super, event) {
 		$super(event);
@@ -19,22 +19,21 @@ var _MainAssistant = {
 		LBB.Util.updateCommandMenuModel(this.controller);
 	},
 	cleanup:function($super) {
-	
-		this.controller.stopListening($('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
+		this.controller.stopListening(this.controller.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
 		
 		$super();	// calling at end because super calls handlers.release()
 	},
 	updateScrollers:function() {
 		// re-setup h-scroller
 		this.controller.setupWidget('h-scroller', {mode:'horizontal-snap'}, this.hScrollerModel);
-		this.controller.newContent($('h-scroller'));
+		this.controller.newContent(this.controller.get('h-scroller'));
 		this.resizeScroller();
 	},
 	setupPageScroller:function($super, i) {
 		$super(i);
 		
-		var e = new Element("div", {id:"page" + i + "-tick-mark", class:"tickMark"});
-		$('pageTicks').insert(e);
+		var e = new Element("div", {"id":"page" + i + "-tick-mark", "class":"tickMark"});
+		this.controller.get('pageTicks').insert(e);
 	},
 	getTickMark:function(page, idOnly) {
 		return this.getPageElement("tick-mark", page, idOnly);
@@ -42,10 +41,10 @@ var _MainAssistant = {
 	setActivePage:function($super, page) {
 		$super(page);
 		this.setPageTitle();
-		this.onClearSelected();
+		this.onClearSelected(undefined, true);
 		
 		// snap to current page.  insulate from incomplete setup.
-		var hScroller = $('h-scroller');
+		var hScroller = this.controller.get('h-scroller');
 		if(hScroller && hScroller.mojo) {
 			hScroller.mojo.setSnapIndex(this.activePage, true);
 		}
@@ -66,10 +65,27 @@ var _MainAssistant = {
 		}
 	},
 	setPageTitle:function() {
-		$('pageTitle').update(this.getCurrentPageModel().getTitle());
+		this.controller.get('pageTitle').update(this.getCurrentPageModel().getTitle());
+	},
+	getAllPoints:function(action) {
+		var r = [];
+		var c = this.getCurrentPageModel().getContacts();
+		for(var i=0;i<c.length;i++) {
+			for(var j=0;j<4;j++) {
+				var pref = c[i].qc.selections[j];
+				if(pref && pref.action == action) {
+					var cp = Mojo.Widget.QuickContact.getPointById(c[i],action,pref.details);
+					if (cp) {
+						r.push(cp);
+					}
+				}	
+			}
+		}
+		
+		return r;
 	},
 	onPageChangeTimer:function() {
-		$('h-scroller').mojo.setSnapIndex(this.activePage+this.pageChangeDirection, true);
+		this.controller.get('h-scroller').mojo.setSnapIndex(this.activePage+this.pageChangeDirection, true);
 		
 		// reset
 		clearTimeout(this.pageChangeTimer);
@@ -77,13 +93,14 @@ var _MainAssistant = {
 		this.pageChangeDirection = 0;
 	},
 	onPageButtonTap:function(event) {
-		Mojo.Log.info("> onPageButtonTap");
+		LBB.Util.log("> MainAssistant.onPageButtonTap");
 		
 		var items = [
-				{label: $L('Add'), command: 'add'},
-				{label: $L('Rename'), command: 'rename'},
-				{label: $L('Remove'), command: 'delete', disabled:disabled}
-			];
+			{label: $L("Page")},
+			{label: $L('Add'), command: 'add'},
+			{label: $L('Rename'), command: 'rename'},
+			{label: $L('Remove'), command: 'delete', disabled:disabled}
+		];
 		
 		// add page-wide contact actions when page has contacts
 		if(this.getCurrentPageModel().hasContacts()) {
@@ -136,7 +153,7 @@ var _MainAssistant = {
 		
 		// setup new page scroller and add to snapElements
 		this.setupPageScroller(index);
-		this.hScrollerModel.snapElements.x.push($('page'+index+'-scroller'));
+		this.hScrollerModel.snapElements.x.push(this.controller.get('page'+index+'-scroller'));
 		
 		// update scrollers
 		this.updateScrollers();
@@ -168,7 +185,10 @@ var _MainAssistant = {
 
 			var c = p[this.activePage].getContacts();
 			for(var i=0;i<c.length;i++) {
-				p[destPage].getContacts().push(c[i]);
+				// fixes defect where app will break when pushing a duplicate contact on a page
+				if(p[destPage].findContactById(c[i].id).index == -1) {
+					p[destPage].getContacts().push(c[i]);					
+				}
 			}
 		}
 		
@@ -197,8 +217,9 @@ var _MainAssistant = {
 
 			// destPage is the location to which contacts were moved.  when removing the second to last page,
 			// destPage will be out of bounds for the array of pages so we must decrement to last page.
-			// otherwise, destPage is the correct page to focus 
+			// otherwise, destPage is the correct page to focus
 			var activePage = (destPage == p.length) ? p.length - 1 : destPage;
+			Mojo.Log.info(this.activePage, activePage, destPage, p.length);
 			
 			this.setActivePage(activePage);
 			this.updateScrollers();
@@ -218,51 +239,39 @@ var _MainAssistant = {
 		this.setPageTitle();
 	},
 	onSmsPage:function() {
-		var r = [];
-		var c = this.getCurrentPageModel().getContacts();
-		for(var i=0;i<c.length;i++) {
-			var pref = Mojo.Widget.QuickContact.getPreference(c[i], "sms");
-			if(typeof(pref) == "object") {
-				r.push({address: pref.value});
-			}
-		}
+		var r = this.getAllPoints("sms");
+		if(r.length == 0) return;
 		
-		if (r.length == 0) {
-			Mojo.Log.info("nada");
-		} else {
-			this.controller.serviceRequest('palm://com.palm.applicationManager', {
-				method: 'launch',
-				parameters: {
-					id: "com.palm.app.messaging",
-					params: {composeRecipients: r}
-				}
-			});
+		// map points to address object 
+		for(var i=0;i<r.length;i++) {
+			r[i] = {"address":r[i].value};
 		}
+				
+		this.controller.serviceRequest('palm://com.palm.applicationManager', {
+			method: 'launch',
+			parameters: {
+				id: "com.palm.app.messaging",
+				params: {composeRecipients: r}
+			}
+		});
 	},
 	onEmailPage:function() {
-		var r = [];
-		var c = this.getCurrentPageModel().getContacts();
-		for(var i=0;i<c.length;i++) {
-			var pref = Mojo.Widget.QuickContact.getPreference(c[i], "email");
-			if(typeof(pref) == "object") {
-				r.push({type:"email",role:1,value: pref.value});
-			}
+		var r = this.getAllPoints("email");
+		if(r.length == 0) return;
+		
+		for (var i = 0; i < r.length; i++) {
+			r[i] = {type: "email",role: 1,value: r[i].value};
 		}
 		
-		if (r.length == 0) {
-			Mojo.Log.info("nada");
-		} else {
-			this.controller.serviceRequest("palm://com.palm.applicationManager", {
-				method: 'open',
-				parameters: {
-					id: "com.palm.app.email",
-					params: {
-						recipients: r
-					}
+		this.controller.serviceRequest("palm://com.palm.applicationManager", {
+			method: 'open',
+			parameters: {
+				id: "com.palm.app.email",
+				params: {
+					recipients: r
 				}
-			});
-		}
-		
+			}
+		});
 	},
 	onHover:function($super, position) {
 		$super(position);
@@ -291,22 +300,24 @@ var _RenamePageAssistant = {
 	setup:function(widget) {
 		this.widget = widget;
 				
-		$('dialogLabel').update($L('Rename Page'));
+		this.caller.controller.get('dialogLabel').update($L('Rename Page'));
 		this.caller.controller.setupWidget('currentValue', {}, {value:this.model.pageTitle});
 		this.caller.controller.setupWidget('okButton', {}, {label:$L("OK"),buttonClass:"affirmative"});
 		this.caller.controller.setupWidget('cancelButton', {}, {label:$L("Cancel"),buttonClass:"secondary"}); 
-		
-		this.caller.controller.listen($('okButton'), Mojo.Event.tap, this.handlers.onOk);
-		this.caller.controller.listen($('cancelButton'), Mojo.Event.tap, this.handlers.onExit);
+	},
+	activate:function() {
+		this.caller.controller.listen(this.caller.controller.get('okButton'), Mojo.Event.tap, this.handlers.onOk);
+		this.caller.controller.listen(this.caller.controller.get('cancelButton'), Mojo.Event.tap, this.handlers.onExit);
+	},
+	deactivate:function() {
+		this.caller.controller.stopListening(this.caller.controller.get('okButton'), Mojo.Event.tap, this.handlers.onOk);
+		this.caller.controller.stopListening(this.caller.controller.get('cancelButton'), Mojo.Event.tap, this.handlers.onExit);
 	},
 	cleanup:function() {
-		this.caller.controller.stopListening($('okButton'), Mojo.Event.tap, this.handlers.onOk);
-		this.caller.controller.stopListening($('cancelButton'), Mojo.Event.tap, this.handlers.onExit);
-		
 		this.handlers.release();
 	},
 	onOk:function() {
-		this.caller.onConfirmRenamePage($('currentValue').mojo.getValue());
+		this.caller.onConfirmRenamePage(this.caller.controller.get('currentValue').mojo.getValue());
 		
 		this.onExit();
 	},

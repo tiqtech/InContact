@@ -1,15 +1,14 @@
 var _MainAssistantBase = {
-	initialize:function(model, prefs) {
+	initialize:function() {
 		try {
 			LBB.Util.log("> MainAssistant.initialize");
-
-			LBB.Model = model;
-			LBB.Preferences = prefs;
-		
+			
+			Mojo.Timing.resume("MainScene#all");
+					
 			this.selected = null;
 			this.activePage = 0;
 			
-			this.bodyWidth = document.body.offsetWidth;
+			this.bodyWidth = Mojo.Environment.DeviceInfo.screenWidth;
 	
 			this.dragger = null;
 			this.hScrollerModel = null;
@@ -24,47 +23,39 @@ var _MainAssistantBase = {
 			LBB.Util.log("> MainAssistant.setup");
 						
 			// enables QuickContact widget to render appropriately for driving/normal mode
-			$('mojo-scene-main').addClassName(Mojo.Controller.getAppController().assistant.settings.mode);
+			this.controller.get('mojo-scene-main').addClassName(Mojo.Controller.getAppController().assistant.settings.mode);
 			
 			LBB.Util.loadTheme(this.controller);
 			
 			/** Setup Widgets **/
 			
+			LBB.Util.log("setting up widgets");
 			this.setupScrollers();
 			this.initContactWidgets();
 			LBB.Util.setupCommandMenu(this.controller, 'grid', false);
 			this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, LBB.Util.getAppMenuModel("grid"));
-			
-			/** Event Handlers **/
-			
-			this.controller.listen($('h-scroller'), Mojo.Event.propertyChange, this.handlers.onPageChange);
-			this.controller.listen(document, Mojo.Event.tap, this.handlers.onClearSelected, false);
-			this.controller.listen(document, 'orientationchange', this.handlers.onOrientationChange);
-			this.controller.listen(document, 'resize', this.handlers.onResize);
-			this.controller.listen($('contactButton'), Mojo.Event.tap, this.handlers.onContactButtonTap);
-			
+						
 			/** Other Setup **/
 			
+			LBB.Util.log("other setup");
 			this.setActivePage(this.getDefaultPage());
 			this.controller.watchModel(this.getModel(), this, this.handlers.handleModelChanged);
 			this.resizeScroller();
 			
 			// setup help bubble
-			var helpBubble = $('help-bubble');
+			var helpBubble = this.controller.get('help-bubble');
 			if (!this.getModel().hasContacts()) {
 				helpBubble.update($L("Tap the person icon above to add, edit, or remove a contact."));
 				helpBubble.show();
 			}
+			
+			Mojo.Timing.pause("MainScene#all");
+			Mojo.Timing.reportTiming("MainScene#", "MainScene")
 		} catch(e) {
 			LBB.Util.error("MainAssistant.setup", e);
 		}
 	},
 	cleanup:function() {
-		this.controller.stopListening($('h-scroller'), Mojo.Event.propertyChange, this.handlers.onPageChange);
-		this.controller.stopListening(document, Mojo.Event.tap, this.handlers.onClearSelected, false);
-		this.controller.stopListening(document, 'orientationchange', this.handlers.onOrientationChange);
-		this.controller.stopListening(document, 'resize', this.handlers.onResize);
-		this.controller.stopListening($('contactButton'), Mojo.Event.tap, this.handlers.onContactButtonTap);
 		
 		// cleanup QC handlers, iterate all pages and get all contact widgets
 		var pages = this.getModel().getPages();
@@ -72,7 +63,7 @@ var _MainAssistantBase = {
 			var contacts = pages[p].getContacts();
 			for(var i=0;i<contacts.length;i++) {
 				var id = 'page' + p + '-qc-' + contacts[i].id;
-				var o = $(id);
+				var o = this.controller.get(id);
 				Mojo.Event.stopListening(o, Mojo.Event.hold, this.handlers.onEnableDrag);
 				Mojo.Event.stopListening(o, Mojo.Event.tap, this.handlers.onSelect);
 			}
@@ -103,6 +94,14 @@ var _MainAssistantBase = {
 				this.initContactWidgets();
 			}
 			
+			/** Event Handlers **/
+			LBB.Util.log("adding event handlers")
+			this.controller.listen(this.controller.get('h-scroller'), Mojo.Event.propertyChange, this.handlers.onPageChange);
+			this.controller.listen(this.controller.get('mojo-scene-main'), Mojo.Event.tap, this.handlers.onClearSelected, false);
+			this.controller.listen(this.controller.document, 'orientationchange', this.handlers.onOrientationChange);
+			this.controller.listen(this.controller.document, 'resize', this.handlers.onResize);
+			this.controller.listen(this.controller.get('contactButton'), Mojo.Event.tap, this.handlers.onContactButtonTap);
+
 			this.onOrientationChange(null);
 			this.onNamePositionChange();
 			this.layoutContacts();
@@ -111,8 +110,17 @@ var _MainAssistantBase = {
 			LBB.Util.error("MainAssistant.activate", e);
 		}
 	},
+	deactivate:function() {
+		/** Event Handlers **/
+		
+		this.controller.stopListening(this.controller.get('h-scroller'), Mojo.Event.propertyChange, this.handlers.onPageChange);
+		this.controller.stopListening(this.controller.get('mojo-scene-main'), Mojo.Event.tap, this.handlers.onClearSelected, false);
+		this.controller.stopListening(document, 'orientationchange', this.handlers.onOrientationChange);
+		this.controller.stopListening(document, 'resize', this.handlers.onResize);
+		this.controller.stopListening(this.controller.get('contactButton'), Mojo.Event.tap, this.handlers.onContactButtonTap);
+	},
 	setupScrollers:function() {
-		//Mojo.Log.info("> setupScrollers");
+		LBB.Util.log("> MainAssistant.setupScrollers");
 		
 		var pageCount=this.getModel().getPages().length;
 		
@@ -120,11 +128,11 @@ var _MainAssistantBase = {
 			this.setupPageScroller(i);
 		}
 		
-		this.controller.newContent($('h-scroller'));
+		this.controller.newContent(this.controller.get('h-scroller'));
 		
 		var pages = [];
 		for(var i=0;i<pageCount;i++) {
-			pages.push($('page'+i+'-scroller'));	
+			pages.push(this.controller.get('page'+i+'-scroller'));	
 		}
 		
 		this.hScrollerModel = {snapElements:{x:pages}, snapIndex:0};
@@ -132,26 +140,28 @@ var _MainAssistantBase = {
 		this.controller.setupWidget('h-scroller', {mode:'horizontal-snap'}, this.hScrollerModel);
 	},
 	setupPageScroller:function(i) {
-		var hScrollWrapper = $('h-scroller-scroll-wrapper');
+		var hScrollWrapper = this.controller.get('h-scroller-scroll-wrapper');
 		var id='page'+i;
-		var c = Mojo.View.render({"template":"main/contact-page", attributes:{'id':id,width:window.innerWidth}, model:{}});
+		var w = this.controller.get("mojo-scene-main").getDimensions().width;
+		var c = Mojo.View.render({"template":"main/contact-page", attributes:{'id':id,width:w}, model:{}});
 		
 		hScrollWrapper.insert(c);
 		this.controller.setupWidget(id+'-scroller', {mode:'vertical'}, {});
 	},
 	resizeScroller:function() {
-		var offsetTop = $('h-scroller').cumulativeOffset().top;
-		var hScrollWrapper = $('h-scroller-scroll-wrapper');
+		var offsetTop = this.controller.get('h-scroller').cumulativeOffset().top;
+		var hScrollWrapper = this.controller.get('h-scroller-scroll-wrapper');
 		var margin = 6;
+		var dim = Mojo.View.getViewportDimensions(this.controller.document);
 		
 		var pageCount = this.getModel().getPages().length;
 		for(var i=0;i<pageCount;i++) {
 			var s = this.getScroller(i);
-			s.style.width = (window.innerWidth-margin) + "px";
-			s.style.height = (window.innerHeight - offsetTop - margin) + "px";
+			s.style.width = (dim.width-margin) + "px";
+			s.style.height = (dim.height - offsetTop - margin) + "px";
 		}
 		
-		hScrollWrapper.style.width = (window.innerWidth*pageCount) + "px";
+		hScrollWrapper.style.width = (dim.width*pageCount) + "px";
 	},
 	revealContact:function(widget) {
 		var dim = this.getLayoutDimensions();
@@ -180,7 +190,7 @@ var _MainAssistantBase = {
 		LBB.Util.log("> MainAssistant.initContactWidgetsByPage");
 	
 		var contacts = this.getModel().getPage(page).getContacts();
-		
+				
 		var dim = this.getLayoutDimensions();
 		
 		// init any new contacts
@@ -188,18 +198,18 @@ var _MainAssistantBase = {
 			var id = 'page' + page + '-qc-' + contacts[i].id;
 			
 			// if element doesn't already exist (when returning from select contact), create it and set it up
-			if($(id) == null) {
+			if(this.controller.get(id) == null) {
 				// if this is called during setup, the scene controller will take care of initializing widgets
 				// if it's called otherwise (e.g. when returning from select contact), calling newContent to force init
 				this.getScrollWrapper(page).insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
 				this.controller.setupWidget(id, {dimensions:dim}, contacts[i]);
 				
-				var o = $(id);
+				var o = this.controller.get(id);
 				Mojo.Event.listen(o, Mojo.Event.hold, this.handlers.onEnableDrag);
 				Mojo.Event.listen(o, Mojo.Event.tap, this.handlers.onSelect);
 			} else {
 				// if it does exist, just re-render it
-				$(id).mojo.render();
+				this.controller.get(id).mojo.render();
 			}
 		}
 		
@@ -209,15 +219,11 @@ var _MainAssistantBase = {
 		var that = this;
 		this.controller.select("#" + this.getScroller(page).id + " .QuickContact").each(function(el) {
 			var id = el.id.substring(el.id.lastIndexOf("-")+1);
-			Mojo.Log.info("id="+id);
 			var c = LBB.Model.getInstance().getPage(page).findContactById(id);
-			Mojo.Log.info("id=",id,"c.index=",c.index);
 			if(c.index == -1) {
 				that.controller.remove(el);
 			}
 		});
-
-		//Mojo.Log.info("< MainAssistant.initContactWidgetsByPage");
 	},
 	layoutContacts:function(position, dragComplete) {
 		var pages = this.getModel().getPages();
@@ -243,7 +249,7 @@ var _MainAssistantBase = {
 		for(var i=0;i<contacts.length;i++) {
 		
 		    var id = 'page' + page + '-qc-' + contacts[i].id;
-			var o = $(id);
+			var o = this.controller.get(id);
 			var n;
 			
 			if(i >= index && !foundActive) {
@@ -275,12 +281,8 @@ var _MainAssistantBase = {
 		var row = (n%dim.perRow == 0) ? n/dim.perRow : Math.floor(n/dim.perRow)+1;
 		var bottomPaddingTop = dim.padding + (row*dim.size) + dim.offsetTop;
 		this.getPaddingElement(page).style.top = bottomPaddingTop + "px";
-		
-		//Mojo.Log.info("< MainAssistant.layoutContacts");
 	},
 	getLayoutDimensions:function() {
-		//Mojo.Log.info("> getLayoutDimensions");
-		
 		// handles driving/normal modes
 		var aa = Mojo.Controller.getAppController().assistant;
 		var minWidth = (aa.settings.mode == "driving") ? 120 : 90;
@@ -289,7 +291,7 @@ var _MainAssistantBase = {
 		var margin = 6;
 		var width;
 		
-		var scrollerWidth = window.innerWidth - margin;
+		var scrollerWidth = Mojo.Environment.DeviceInfo.screenWidth - margin;
 		
 		// find appropriate size
 		do {
@@ -345,7 +347,7 @@ var _MainAssistantBase = {
 		}
 		
 		var elId = 'page' + _page + '-' + id;
-		return (idOnly == true) ? elId : $(elId);
+		return (idOnly == true) ? elId : this.controller.get(elId);
 	},
 	getDefaultPage:function() {
 		// TODO: pull from preferences
@@ -370,7 +372,7 @@ var _MainAssistantBase = {
 		this.controller.popupSubmenu({
 			onChoose:this.handlers.onContactAction,
 			placeNear:event.target,
-			items: [{label: $L('Add'), command: 'add'},{label: $L('Edit'), command: 'edit', disabled:disabled},{label: $L('Remove'), command: 'delete', disabled:disabled}]
+			items: [{label:$L("Contact")},{label: $L('Add'), command: 'add'},{label: $L('Edit'), command: 'edit', disabled:disabled},{label: $L('Remove'), command: 'delete', disabled:disabled}]
 		});
 		
 		event.stopPropagation();
@@ -410,15 +412,13 @@ var _MainAssistantBase = {
 				this.controller.stageController.pushScene("edit-contact", c.contact);
 			}
 		} catch (e) {
-			Mojo.Log.error("Unable to find a contact for selected contact.  selected might not exist.  Msg: " + e);
+			LBB.Util.error("Unable to find a contact for selected contact.  selected might not exist.  Msg: " + e);
 		}
 	},
-	// TODO: copied from edit-contact.  need to remove duplicate code
 	onRemoveContact:function() {
-		//Mojo.Log.info("> EditContactAssistant.onDelete");
+		LBB.Util.log("> MainAssistant.onRemoveContact");
 		
-		this.controller.showAlertDialog(
-		{
+		this.controller.showAlertDialog({
 			onChoose:this.handlers.onConfirmRemoveContact,
 			title:$L("Confirm Removal"),
 			message:$L("Are you sure you want to remove this contact?"),
@@ -440,11 +440,23 @@ var _MainAssistantBase = {
 			this.invalidate();
 		}
 	},
-	onClearSelected:function(event) {
+	onClearSelected:function(event, skipAnimation) {
 		LBB.Util.log("> MainAssistant.onClearSelected");
 		
-		if(this.selected != null) this.selected.mojo.select(false);
-		this.selected = null;
+		if (this.selected != null) {
+			var transition;
+			
+			if (!skipAnimation) {
+				transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
+			}
+			
+			this.selected.mojo.select(false);
+			this.selected = null;
+			
+			if (!skipAnimation == true) {
+				transition.run();
+			}
+		}
 	},
 	handleModelChanged:function(contact) {
 		LBB.Util.log("> MainAssistant.handleModelChanged");
@@ -453,7 +465,7 @@ var _MainAssistantBase = {
 	},
 	onContactSelected:function(contact) {
 		// hide help bubble
-		$("help-bubble").hide();
+		this.controller.get("help-bubble").hide();
 		
 		this.getCurrentPageModel().getContacts().push(contact);
 		this.initContactWidgets();
@@ -461,20 +473,23 @@ var _MainAssistantBase = {
 		this.handleModelChanged();
 	},
 	onSelect:function(event) {
+		var transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
+		
 		// not calling onClearSelected to avoid menu churn by removing and adding edit item
 		if(this.selected != null) this.selected.mojo.select(false);
 		
 		this.selected = event.currentTarget;
 		this.selected.mojo.select(true);
 		
+		transition.run();
+		
 		this.revealContact(this.selected);
 		
 		event.stopPropagation();
 	},
 	onEnableDrag:function(e) {
-		//Mojo.Log.info("> MainAssistant.onEnableDrag");
-		
-		this.onClearSelected();
+		// passing true to skip animation.  otherwise, drag is delayed until transition completes
+		this.onClearSelected(undefined, true);
 
 		var pageCount = this.getModel().getPages().length;
 		for(var i=0;i<pageCount;i++) {
@@ -502,9 +517,12 @@ var _MainAssistantBase = {
 		this.getPaddingElement().style.height = (dim.size + 50) + "px";
 	},
 	onDragEnd:function(position) {
+		LBB.Util.log("> MainAssistant.onDragEnd");
+		
 		if(this.dragger == null) return;
 
-		var contactId = this.dragger.element.id.split("_")[1];
+		var el = this.dragger.element;
+		var contactId = el.id.substring(el.id.lastIndexOf("-")+1);
 		var m = this.getCurrentPageModel();
 		var contacts = m.getContacts();
 		var c = m.findContactById(contactId);
@@ -512,18 +530,10 @@ var _MainAssistantBase = {
 		
 		// if not the same spot, handle drop.
 		// also, if index > max and c is last contact, effectively the same spot
-		if(c.index != index && !(c.index == contacts.length - 1 && index == contacts.length))
-		{
-			if(index >= contacts.length) {
-				// if moving to end, append and slice from original spot
-				contacts.push(c.contact);
-				contacts.splice(c.index, 1);
-			} else {
-				// otherwise, insert at requested spot
-				contacts.splice(c.index, 1);
-				contacts.splice(index, 0, c.contact);
-			}
-			
+		if(c.index != index && !(c.index == contacts.length - 1 && index == contacts.length)) {
+			contacts.splice(c.index, 1);
+			contacts.splice(index, 0, c.contact);
+
 			LBB.Model.save();
 		}
 		
@@ -537,7 +547,7 @@ var _MainAssistantBase = {
 	onNamePositionChange:function() {
 		var prefs = LBB.Preferences.getInstance();
 		var np = "contact-name-" + prefs.getProperty("namePosition");
-		var scroller = $('h-scroller');
+		var scroller = this.controller.get('h-scroller');
 		
 		if(scroller.hasClassName(np)) return;
 		
@@ -560,8 +570,8 @@ var _MainAssistantBase = {
 	onOrientationChange:function(event) {
 		// orientation changes happen whenever the device is moved
 		// only "do work" when it's moving from portrait to landscape (or vice versa)
-		if(document.body.offsetWidth != this.bodyWidth) {
-			this.bodyWidth = document.body.offsetWidth;
+		if(this.controller.document.body.offsetWidth != this.bodyWidth) {
+			this.bodyWidth = this.controller.document.body.offsetWidth;
 			
 			// fixes horizontal scroller positioning
 			this.setActivePage(this.activePage);
@@ -574,11 +584,7 @@ var _MainAssistantBase = {
 		}
 	},
 	onPageChange:function(event) {
-		//Mojo.Log.info("> onPageChange");
-		//var prevPage = event.oldValue;
-		var page = event.value;
-		
-		this.setActivePage(page);
+		this.setActivePage(event.value);
 	},
 	onHover:function(position) {
 		this.layoutContactsByPage(this.activePage, position);

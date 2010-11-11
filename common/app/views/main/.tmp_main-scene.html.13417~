@@ -1,14 +1,0 @@
-<div id="header" class="palm-header">
-	<div id="contactButton" class="button left contact-icon" x-mojo-tap-highlight="momentary"></div>
-	<div id="pageTitle">InContact</div>
-	<div id="pageButton" class="button right card-icon" x-mojo-tap-highlight="momentary" style="display:none;"></div> 
-</div>
-<div x-mojo-element="Scroller" id="h-scroller">
-	<div id="h-scroller-scroll-wrapper"></div>
-</div>
-<div class="help-bubble contact" id="help-bubble" style="display:none"></div>
-<div class="palm-scrim" id="upgrade-dialog" style="display:none">	<div class="dialog-wrapper">
-		<div class="palm-body-text">You should upgrade</div>
-		<div id="upgrade-button" x-mojo-element="Button"></div>
-		<div id="cancel-upgrade-button" x-mojo-element="Button"></div>
-	</div></div>
