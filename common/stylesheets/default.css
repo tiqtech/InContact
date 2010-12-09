@@ -346,3 +346,56 @@ body.palm-default {
 {
 	font-size:12pt;
 }
+
+/** group scene **/
+
+.group-scene .name-row {
+	padding-right:60px;
+}
+
+.group-scene .group-name {
+	float:left;
+	width:200px;
+}
+
+.group-scene .group-members {
+	clear:both;
+}
+
+.group-scene .group-photo {
+	float:right;
+	margin-top:10px;
+	margin-right:-46px;
+	height:50px;
+	width:50px;
+	background:url('../images/details-image-generic.png') fixed no-repeat center center;
+	-webkit-border-radius:8px;
+	-webkit-background-size:100% 100%;
+}
+
+.group-scene .group-photo .group-photo-frame {
+	background:url('../images/details-view-avatar-frame.png') fixed no-repeat center center;
+	-webkit-background-size:100% 100%;
+	width:60px;
+	height:60px;
+	margin:-5px;
+}
+
+.group-scene .palm-row.member-row {
+	height:80px;
+}
+
+.group-scene .contact-name {
+	padding-top:5px;
+	padding-left:5px;
+}
+
+.group-scene .contact-point {
+	font-size:smaller;
+	padding-left:15px;
+}
+
+.group-scene .palm-dialog-content .list-selector {
+	margin:-30px 6px -15px 0px;
+	height:52px;
+}

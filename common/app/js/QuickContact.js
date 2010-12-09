@@ -6,7 +6,8 @@ var _QuickContact = {
 			"container":"grid",
 			"selected":false
 		};
-		this.handlers = new HandlerManager(this, ["onIconTap","onPhone","onSMS","onIM","onEmail"])
+		this.handlers = new HandlerManager(this);
+		this.handlers.bind("formatContactName");	// add bind for formatter
 	},
 	setup:function() {
 		LBB.Util.log("> QuickContact.setup");
@@ -17,7 +18,7 @@ var _QuickContact = {
 			this.attributes[key] = this.controller.attributes[key];
 		}
 		
-		var formatters = {"contactName":Mojo.Widget.QuickContact.formatContactName}
+		var formatters = {"contactName":this.handlers.formatContactName}
 			
 		this.attributes.id = this.controller.element.id;
 		var prefs = LBB.Preferences.getInstance();
@@ -26,21 +27,21 @@ var _QuickContact = {
 	
 		this.controller.element.update(Mojo.View.render({"template":"QuickContact/"+this.attributes.container, attributes:this.attributes, object:this.controller.model, formatters:formatters}));
 		this.loadContactPhoto();
-		
-		this.controller.exposeMethods(["select", "render"]);
 		this.render();
 		
+		this.controller.exposeMethods(["select", "render"]);
+				
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_0"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_1"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_2"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_3"), Mojo.Event.tap, this.handlers.onIconTap, true);
 	},
-	cleanup:function() {		
+	cleanup:function() {
 		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_0"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_1"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_2"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.stopListening(this.controller.get(this.controller.element.id + "_3"), Mojo.Event.tap, this.handlers.onIconTap, true);
-		
+				
 		this.handlers.release();
 	},
 	render:function() {
@@ -63,7 +64,7 @@ var _QuickContact = {
 			var cp = Mojo.Widget.QuickContact.getPreference(this.controller.model, i);
 			var classes = ["icon"];
 			
-			var icon = this.controller.get(this.attributes.id+"_"+i);
+			var icon = this.getIcon(i);
 			if(cp && cp != Mojo.Widget.QuickContact.SelectNone) {
 				icon.setStyle({"background":"url(images/" + p.icon +".png)"});
 				classes.push("active");
@@ -91,7 +92,13 @@ var _QuickContact = {
 			c.qc.selections['1'] = {'index':1,'icon':'txt','action':'sms','details':(sms) ? sms.id : null};
 			c.qc.selections['2'] = {'index':2,'icon':'email','action':'email','details':(email) ? email.id : null};
 			c.qc.selections['3'] = {'index':3,'icon':'im','action':'im','details':(im) ? im.id : null};
+			
+			c.qc.largePhoto = (c.pictureLocBig) ? c.pictureLocBig : c.pictureLoc;
+			c.qc.smallPhoto = c.pictureLoc;
 		}
+	},
+	formatContactName:function(value, model) {
+		return Mojo.Widget.QuickContact.formatContactName(value, model);
 	},
 	select:function(selected) {				
 		this.attributes.selected = (selected == true);
@@ -99,24 +106,27 @@ var _QuickContact = {
 	},
 	loadContactPhoto:function() {
 		var c = this.controller.model;
-		
-		// if photos haven't been initialized, do so
-		if(c.qc.largePhoto == null) {
-			c.qc.largePhoto = (c.pictureLocBig) ? c.pictureLocBig : c.pictureLoc;
-			c.qc.smallPhoto = c.pictureLoc;
-		}
-			
+					
 		// resize only applies to grid mode
 		if(this.attributes.container == "grid") {
-
+			var photoPath = this.getLargePhotoPath();
+			
 			var main = this.controller.get(this.attributes.id + "_photo");
 			var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding*2)
-			var photo = "/var/luna/data/extractfs" + encodeURIComponent(c.qc.largePhoto) + ":0:0:"+size+":"+size+":4";
+			var photo = "/var/luna/data/extractfs" + encodeURIComponent(photoPath) + ":0:0:"+size+":"+size+":4";
 	
-			main.style.cssText += "background:url('" + photo + "');background-position:center center;background-repeat:no-repeat;";
+			main.setStyle({
+				"background":"url('" + photo + "')",
+				"backgroundPosition":"center center",
+				"backgroundRepeat":"no-repeat"
+			});
 		} else { // list view
-			this.controller.get(this.attributes.id + "_img").setAttribute('src', c.qc.smallPhoto);
+			var photoPath = this.getSmallPhotoPath();
+			this.controller.get(this.attributes.id + "_img").setAttribute('src', photoPath);
 		}
+	},
+	getIcon:function(index) {
+		return this.controller.get(this.attributes.id+"_"+index);
 	},
 	onIconTap:function(event) {
 		LBB.Util.log("> QuickContact.onIconTap");
@@ -127,9 +137,9 @@ var _QuickContact = {
 		var action = s.action;
 		var operations = {"phone":this.handlers.onPhone,"sms":this.handlers.onSMS,"im":this.handlers.onIM,"email":this.handlers.onEmail};
 		  
-		operations[action](s.details);
+		operations[action](event, s.details);
 	},
-	onPhone:function(id) {
+	onPhone:function(event, id) {
 		LBB.Util.log("> QuickContact.onPhone");
 
 		var phone = this.getPointById("phone", id);
@@ -148,7 +158,7 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "phone");
 	},
-	onSMS:function(id) {
+	onSMS:function(event, id) {
 	    var phone = this.getPointById("sms", id);
 		
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
@@ -169,7 +179,7 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "sms");
 	},
-	onIM:function(id) {
+	onIM:function(event, id) {
 		var im = this.getPointById("im", id);
 		
 		this.controller.scene.serviceRequest('palm://com.palm.applicationManager', {
@@ -193,7 +203,7 @@ var _QuickContact = {
 		
 		this.actionComplete(event, "im");
 	},
-	onEmail:function(id) {
+	onEmail:function(event, id) {
 		var email = this.getPointById("email", id);
 
 		this.controller.scene.serviceRequest("palm://com.palm.applicationManager", {
@@ -211,6 +221,12 @@ var _QuickContact = {
 		if(closeAction == "any" || closeAction == action) {
 			this.controller.window.close();
 		}
+	},
+	getLargePhotoPath:function() {
+		return this.controller.model.qc.largePhoto;
+	},
+	getSmallPhotoPath:function() {
+		return this.controller.model.qc.smallPhoto;
 	},
 	getPointById:function(action, id) {
 		return Mojo.Widget.QuickContact.getPointById(this.controller.model, action, id);

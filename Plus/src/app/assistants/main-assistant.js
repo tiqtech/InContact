@@ -2,7 +2,10 @@ var _MainAssistant = {
 	initialize:function($super, model, prefs) {
 		$super(model, prefs);
 		
-		this.handlers.bind(["onPageButtonTap","onPageAction"]);
+		// update "Add" item to be submenu
+		this.contactButtonItems[1] = {label:$L("Add"),items:[{label:$L("Contact"),command:"add"},{label:$L("Group"),command:"add-group"}]};
+		
+		//this.handlers.bind(["onPageButtonTap","onPageAction"]);
 	},
 	setup:function($super) {
 		$super();
@@ -121,6 +124,28 @@ var _MainAssistant = {
 		});
 		
 		event.stopPropagation();
+	},
+	onContactAction:function($super, cmd) {
+		var contact = (this.selected) ? this.getCurrentPageModel().findContactById(this.selected.id.substring(this.selected.id.lastIndexOf("-")+1)).contact : undefined;
+
+		if(cmd === "add-group" || (cmd === "edit" && contact && contact.type === "group")) {
+			this.controller.stageController.pushScene("group", contact, {
+				callback: this.handlers.onGroupAction
+			});
+		} else {
+			$super(cmd);
+		}
+	},
+	onGroupAction:function(model, isNew) {
+		LBB.Util.log("> MainAssistant.onGroupAction");
+		this.getModel().save();
+		
+		if(isNew) {
+			this.onContactSelected(model);
+		} else {
+			var id = 'page' + this.activePage + '-qc-' + model.id;
+			this.controller.get(id).mojo.render();
+		}
 	},
 	onPageAction:function(command) {
 		switch(command) {
@@ -295,7 +320,7 @@ var _RenamePageAssistant = {
 	initialize:function(caller, model) {
 		this.caller = caller;
 		this.model = model;
-		this.handlers = new HandlerManager(this, ["onOk", "onExit"]); 
+		this.handlers = new HandlerManager(this); 
 	},
 	setup:function(widget) {
 		this.widget = widget;

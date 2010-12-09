@@ -1,7 +1,8 @@
 var _HelpAssistant = {
 	initialize:function(key) {
 		this.startupKey = key;
-		this.handlers = new HandlerManager(this, ["onTopicTap", "onSeeAlsoTap", "loadRemoteHelp", "loadLocalHelp", "formatSeeAlso"]);
+		this.handlers = new HandlerManager(this);
+		this.handlers.bind(["loadRemoteHelp", "loadLocalHelp", "formatSeeAlso"]);
 	},
 	setup:function(key) {
 		this.controller.get("help-title").update($L("Help"));

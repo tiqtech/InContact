@@ -6,7 +6,7 @@ var _ListAssistant = {
 		
 		this.selected = null;
 		this.contactModel = LBB.Model.getInstance();
-		this.handlers = new HandlerManager(this, ["onReorder","onDelete","onSelect","handleModelChanged"]);
+		this.handlers = new HandlerManager(this);
 	},
 	setup:function() {
 

@@ -1,3 +1,5 @@
+if(!LBB) LBB = {};
+
 LBB.Model.prototype.initialize = function() {
 	this.loaded = false;
 	this.modified = false;

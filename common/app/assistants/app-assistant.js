@@ -9,7 +9,9 @@ var _AppAssistant = {
 			// instantiate on Class and create a copy on this instance
 			this.Metrix = new Metrix();		
 			
-			this.handlers = new HandlerManager(this, ["startMainStage", "onCreateDb", "onCreateDbFailure", "onModelReady", "onPrefsReady"]);
+			this.handlers = new HandlerManager(this);
+			this.handlers.bind("startMainStage");
+			
 			this.model = null;
 			this.showAbout = false;
 			this.state = {pref:false,model:false};

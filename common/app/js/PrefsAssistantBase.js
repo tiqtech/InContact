@@ -2,7 +2,7 @@ var _PrefsAssistantBase = {
 	initialize:function(model) {
 		this.model = model;
 		this.prefs = null;
-		this.handlers = new HandlerManager(this, ["handleAutoDialChange", "handleAllowRotateChange", "handleIconChange", "handleThemeChange", "handleNamePositionChange", "handleContactSizeChange", "handleCloseActionChange", "handleStartModeChange", "onShowHelpTopic"]);
+		this.handlers = new HandlerManager(this);
 	},
 	setup:function() {
 		LBB.Util.log("> LBB.Preferences.setup");

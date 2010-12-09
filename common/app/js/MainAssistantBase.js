@@ -1,4 +1,5 @@
 var _MainAssistantBase = {
+	contactButtonItems:[{label:$L("Contact")},{label: $L('Add'), command: 'add'},{label: $L('Edit'), command: 'edit'},{label: $L('Remove'), command: 'delete'}],
 	initialize:function() {
 		try {
 			LBB.Util.log("> MainAssistant.initialize");
@@ -13,7 +14,7 @@ var _MainAssistantBase = {
 			this.dragger = null;
 			this.hScrollerModel = null;
 			
-			this.handlers = new HandlerManager(this, ["onSelect","onEnableDrag", "onClearSelected", "onOrientationChange", "handleModelChanged", "onPageChange", "onContactButtonTap", "onContactAction", "onConfirmRemoveContact", "onResize"]);
+			this.handlers = new HandlerManager(this);
 		} catch (e) {
 			LBB.Util.error("MainAssistant.initialize", e);
 		}
@@ -76,21 +77,18 @@ var _MainAssistantBase = {
 			LBB.Util.log("> MainAssistant.activate");
 			this.onClearSelected();
 		
-			if(event && event.personId)
-			{
+			if(event && event.personId) {
 				LBB.Util.log("adding contact",event.details.record.id);
 				
 				this.onContactSelected(event.details.record);
 			}
-			else if(this.getModel().modified)
-			{
+			else if(this.getModel().modified) {
 				LBB.Util.log("model modified out of scene");
 				
 				// clear modified flag and save changes
 				this.getModel().modified=false;
 				LBB.Model.save();
 				
-				// update display
 				this.initContactWidgets();
 			}
 			
@@ -199,9 +197,12 @@ var _MainAssistantBase = {
 			
 			// if element doesn't already exist (when returning from select contact), create it and set it up
 			if(this.controller.get(id) == null) {
+				
+				var widget = (contacts[i].type == "group") ? "QuickGroup" : "QuickContact";
+				
 				// if this is called during setup, the scene controller will take care of initializing widgets
 				// if it's called otherwise (e.g. when returning from select contact), calling newContent to force init
-				this.getScrollWrapper(page).insert(new Element("div", {"id":id, "x-mojo-element":"QuickContact"}));
+				this.getScrollWrapper(page).insert(new Element("div", {"id":id, "x-mojo-element":widget}));
 				this.controller.setupWidget(id, {dimensions:dim}, contacts[i]);
 				
 				var o = this.controller.get(id);
@@ -368,11 +369,20 @@ var _MainAssistantBase = {
 		this.resizeScroller();
 	},
 	onContactButtonTap:function(event) {
-		var disabled = (this.selected==null);
+		
+		for(var i=0;i<this.contactButtonItems.length;i++) {
+			switch(this.contactButtonItems[i].command) {
+				case "edit":
+				case "delete":
+					this.contactButtonItems[i].disabled = (this.selected==null);
+					break;
+			}
+		}
+		
 		this.controller.popupSubmenu({
 			onChoose:this.handlers.onContactAction,
 			placeNear:event.target,
-			items: [{label:$L("Contact")},{label: $L('Add'), command: 'add'},{label: $L('Edit'), command: 'edit', disabled:disabled},{label: $L('Remove'), command: 'delete', disabled:disabled}]
+			items: this.contactButtonItems
 		});
 		
 		event.stopPropagation();

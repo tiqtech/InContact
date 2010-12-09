@@ -28,7 +28,7 @@ var _EditContactAssistantBase = {
 	areActionsReorderable:false,
 	initialize:function(model) {
 		this.model = model;
-		this.handlers = new HandlerManager(this, ["onDetailsTap","onModelChanged","onItemRendered"]);
+		this.handlers = new HandlerManager(this);
 	},
 	setup:function() {
 		LBB.Util.log("> EditContactAssistant.setup");
