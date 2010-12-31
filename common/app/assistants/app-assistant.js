@@ -3,8 +3,8 @@ var _AppAssistant = {
 		try {
 			LBB.Util.log("> AppAssistant.initialize");
 			
-			Mojo.Timing.resume("AppAssistant");
-			Mojo.Timing.resume("PreLoad");
+			//Mojo.Timing.resume("AppAssistant");
+			//Mojo.Timing.resume("PreLoad");
 			
 			// instantiate on Class and create a copy on this instance
 			this.Metrix = new Metrix();		
@@ -51,7 +51,7 @@ var _AppAssistant = {
 					this.Metrix.postDeviceData();
 					
 					LBB.Util.log("create stage");
-					Mojo.Timing.resume("createStageWithCallback");
+					//Mojo.Timing.resume("createStageWithCallback");
 					this.controller.createStageWithCallback({
 						name: "main",
 						lightweight: true
@@ -72,8 +72,8 @@ var _AppAssistant = {
 		}
 	},
 	startMainStage:function(stageController) {
-		Mojo.Timing.pause("createStageWithCallback");
-		Mojo.Timing.reportTiming("createStageWithCallback","createStageWithCallback");
+		//Mojo.Timing.pause("createStageWithCallback");
+		//Mojo.Timing.reportTiming("createStageWithCallback","createStageWithCallback");
 		try {
 			LBB.Util.log("> AppAssistant.startMainStage");
 			this.loadDepot(true);
@@ -82,9 +82,9 @@ var _AppAssistant = {
 		}
 	},
 	loadDepot:function(isForeground) {
-		Mojo.Timing.pause("PreLoad");
-		Mojo.Timing.reportTiming("PreLoad", "PreLoad");
-		Mojo.Timing.resume("DB");
+		//Mojo.Timing.pause("PreLoad");
+		//Mojo.Timing.reportTiming("PreLoad", "PreLoad");
+		//Mojo.Timing.resume("DB");
 		try {
 			LBB.Util.log("> AppAssistant.loadDepot");
 			this.isForeground = isForeground
@@ -96,7 +96,7 @@ var _AppAssistant = {
 	updateIcon:function() {
 		var prefs = LBB.Preferences.getInstance();
 		
-		if(prefs.isLoaded()) {
+		if(prefs && prefs.isLoaded()) {
 			LBB.Util.updateAppIcon();
 			this.setUpdateIconAlarm();
 		} else {
@@ -110,20 +110,20 @@ var _AppAssistant = {
 		        "wakeup": false,
 		        "key": "updateIcon",
 		        "uri": "palm://com.palm.applicationManager/launch",
-		        "params": '{"id":"com.tiqtech.incontact","params":{"action":"updateIcon"}}',
+		        "params": '{"id":"' + Mojo.appInfo.id + '","params":{"action":"updateIcon"}}',
 		        "in": "00:15:00"
 		    },
 		    onFailure: function(e) { LBB.Util.log("alarm failed",Object.toJSON(e)); }
 		});
 	},
 	onCreateDb:function() {
-		Mojo.Timing.pause("DB");
-		Mojo.Timing.reportTiming("DB","DB");
+		//Mojo.Timing.pause("DB");
+		//Mojo.Timing.reportTiming("DB","DB");
 		try {
 			LBB.Util.log("> AppAssistant.onCreateDb");
 			
-			Mojo.Timing.resume("Model");
-			Mojo.Timing.resume("Prefs");
+			//Mojo.Timing.resume("Model");
+			//Mojo.Timing.resume("Prefs");
 			// param 2 is for upgrade code
 			LBB.Model.load(this.db, undefined, this.handlers.onModelReady);
 			LBB.Preferences.load(this.db, undefined, this.handlers.onPrefsReady);
@@ -138,8 +138,8 @@ var _AppAssistant = {
 	onPrefsReady:function() {
 		LBB.Util.log("> AppAssistant.onPrefsReady");
 	
-		Mojo.Timing.pause("Prefs");
-		Mojo.Timing.reportTiming("Prefs", "Prefs");
+		//Mojo.Timing.pause("Prefs");
+		//Mojo.Timing.reportTiming("Prefs", "Prefs");
 	
 		this.state.pref = true;
 		this.onReady();
@@ -147,8 +147,8 @@ var _AppAssistant = {
 	onModelReady:function() {
 		LBB.Util.log("> AppAssistant.onModelReady");
 		
-		Mojo.Timing.pause("Model");
-		Mojo.Timing.reportTiming("Model", "Model");
+		//Mojo.Timing.pause("Model");
+		//Mojo.Timing.reportTiming("Model", "Model");
 
 		this.state.model = true;
 		this.checkVersion();
@@ -173,8 +173,8 @@ var _AppAssistant = {
 					var controller = this.controller.getStageProxy("main");		
 					controller.setWindowOrientation((rotate) ? "free" : "up");
 					
-					Mojo.Timing.pause("AppAssistant");
-					Mojo.Timing.reportTiming("AppAssistant", "AppAssistant");
+					//Mojo.Timing.pause("AppAssistant");
+					//Mojo.Timing.reportTiming("AppAssistant", "AppAssistant");
 					
 					if(this.showAbout == true) {
 						this.onShowAbout();

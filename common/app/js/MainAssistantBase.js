@@ -4,7 +4,7 @@ var _MainAssistantBase = {
 		try {
 			LBB.Util.log("> MainAssistant.initialize");
 			
-			Mojo.Timing.resume("MainScene#all");
+			//Mojo.Timing.resume("MainScene#all");
 					
 			this.selected = null;
 			this.activePage = 0;
@@ -50,8 +50,8 @@ var _MainAssistantBase = {
 				helpBubble.show();
 			}
 			
-			Mojo.Timing.pause("MainScene#all");
-			Mojo.Timing.reportTiming("MainScene#", "MainScene")
+			//Mojo.Timing.pause("MainScene#all");
+			//Mojo.Timing.reportTiming("MainScene#", "MainScene")
 		} catch(e) {
 			LBB.Util.error("MainAssistant.setup", e);
 		}
@@ -77,12 +77,18 @@ var _MainAssistantBase = {
 			LBB.Util.log("> MainAssistant.activate");
 			this.onClearSelected();
 		
-			if(event && event.personId) {
-				LBB.Util.log("adding contact",event.details.record.id);
-				
-				this.onContactSelected(event.details.record);
-			}
-			else if(this.getModel().modified) {
+			if(event) {
+				if(event.personId) {
+					// webOS 1.x
+					LBB.Util.log("adding contact",event.details.record.id);
+					this.onContactSelected(event.details.record);
+				} else if(event._id) {
+					// webOS 2.x
+					LBB.Util.log("adding contact",event._id);
+					var c = LBB.Util.convertContact(event);
+					this.onContactSelected(c);
+				}
+			} else if(this.getModel().modified) {
 				LBB.Util.log("model modified out of scene");
 				
 				// clear modified flag and save changes

@@ -19,13 +19,17 @@ var _EditContactAssistant = {
 		
 		$super();
 	},
-	activate:function(event) {
+	activate:function($super, event) {
 		this.controller.listen(this.controller.get('contactPointList'), Mojo.Event.listReorder, this.handlers.onReorder);
 		this.controller.listen(this.controller.get('dialog-overlay'), Mojo.Event.tap, this.handlers.onScrimTap);
+		
+		$super(event);
 	},
-	deactivate:function(event) {
+	deactivate:function($super, event) {
 		this.controller.stopListening(this.controller.get('contactPointList'), Mojo.Event.listReorder, this.handlers.onReorder)
 		this.controller.stopListening(this.controller.get('dialog-overlay'), Mojo.Event.tap, this.handlers.onScrimTap);
+		
+		$super(event);
 	},
 	showDialog:function(placeNear, content) {
 		var dlg = this.controller.get('dialog-overlay');
@@ -45,11 +49,13 @@ var _EditContactAssistant = {
 		
 		return c;
 	},
-	handleCommand:function(event) {
+	handleCommand:function($super, event) {
 		if(event.type == Mojo.Event.back && this.controller.get('dialog-overlay').visible()) {
 			this.onScrimTap();
 			event.stop();
 		}
+		
+		$super(event);
 	},
 	onReorder:function(event) {
 		LBB.Util.log("> EditContactAssistant.onReorder");

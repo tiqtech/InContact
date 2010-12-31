@@ -12,6 +12,11 @@
 		background-attachment:fixed;
 	}
 	
+	.link {
+		color:#0000ff;
+		text-decoration:underline;
+	}
+	
 	.edit-contact-scene.incontact .icon-group .selector {
 		visibility:hidden;
 	}
@@ -37,6 +42,7 @@
 	#edit-contact-photo {
 		width:100%;
 		height:100%;
+		-webkit-background-size:100% 100%;	
 		-webkit-border-radius:10px;
 	}
 	
@@ -165,6 +171,12 @@
 <div class="palm-group" style="clear:both;">
 	<div class="palm-group-title">Tap to change</div>
 	<div class="palm-list" id="contactPointList" x-mojo-element="List"></div>
+</div>
+
+<div class="palm-body-text">Has this contact's photo or name changed?  Try <span class="link" id="updateContactLink">updating</span> it!</div>
+
+<div class="palm-scrim" id="updateContactScrim" style="display:none;">
+	<div x-mojo-element="Spinner" id="updateContactSpinner"></div>
 </div>
 
 <div class="palm-scrim" id="dialog-overlay" style="display:none"></div>

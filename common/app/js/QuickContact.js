@@ -46,6 +46,9 @@ var _QuickContact = {
 	},
 	render:function() {
 		try {
+			this.loadContactPhoto();
+			this.controller.get(this.attributes.id+"_contactName").update(this.formatContactName(null, this.controller.model));
+			
 			if(this.attributes.selected) {
 				this.displayIcons();
 				this.controller.get(this.attributes.id).className = this.attributes.container + " QuickContact selected";
@@ -356,4 +359,26 @@ Mojo.Widget.QuickContact.formatContactName = function(value, model) {
 	}
 	
 	return name;
+}
+
+Mojo.Widget.QuickContact.merge = function(originalModel, newModel) {
+		
+	// copy props
+	var props = ["pictureLocBig", "pictureLoc", "pictureLocSquare", "lastName", "firstName", "companyName"];
+	for(var i=0;i<props.length;i++) {
+		var k = props[i];
+		if (newModel[k]) {
+			Mojo.Log.info("updating", k, originalModel[k], newModel[k])
+			originalModel[k] = newModel[k];
+		} else {
+			Mojo.Log.info("deleting", k);
+			delete originalModel[k];
+		}
+	}
+	
+	// update photos
+	originalModel.qc.largePhoto = (newModel.pictureLocBig) ? newModel.pictureLocBig : newModel.pictureLoc;
+	originalModel.qc.smallPhoto = newModel.pictureLoc;
+	
+	//return originalModel;
 }

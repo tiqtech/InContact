@@ -362,18 +362,30 @@ body.palm-default {
 	clear:both;
 }
 
-.group-scene .group-photo {
+.group-scene .group-photo-wrapper {
 	float:right;
 	margin-top:10px;
 	margin-right:-46px;
 	height:50px;
 	width:50px;
+	background:url('../images/details-image-question.png') fixed no-repeat center center;
+	-webkit-border-radius:8px;
+	-webkit-background-size:100% 100%;
+}
+
+.group-scene .group-photo-wrapper .group-photo {
+	position:relative;
+	top:4px;
+	width:50px;
+	height:50px;
 	background:url('../images/details-image-generic.png') fixed no-repeat center center;
 	-webkit-border-radius:8px;
 	-webkit-background-size:100% 100%;
 }
 
-.group-scene .group-photo .group-photo-frame {
+.group-scene .group-photo-wrapper .group-photo .group-photo-frame {
+	position:relative;
+	top:-4px;
 	background:url('../images/details-view-avatar-frame.png') fixed no-repeat center center;
 	-webkit-background-size:100% 100%;
 	width:60px;
@@ -398,4 +410,22 @@ body.palm-default {
 .group-scene .palm-dialog-content .list-selector {
 	margin:-30px 6px -15px 0px;
 	height:52px;
+}
+
+.group-photo-scene #group-photo-grid, .group-photo-scene #group-photo-message-list {
+	margin-top:50px;
+}
+
+.group-photo-scene .photo-wrapper {
+	float:left;
+	background:url('../images/details-image-question.png') fixed no-repeat center center;
+	-webkit-border-radius:10px;
+	-webkit-background-size:100% 100%;
+	margin:5px;
+}
+
+.group-photo-scene .photo-wrapper .photo {
+	-webkit-border-radius:10px;
+	width:90px;
+	height:90px;
 }

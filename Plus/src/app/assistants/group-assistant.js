@@ -41,28 +41,30 @@ var _GroupAssistant = {
 		
 		this.controller.setupWidget('group-name-field', {textCase:Mojo.Widget.steModeTitleCase,modelProperty:"name"},this.model)
 		this.controller.setupWidget('group-members-list', {itemTemplate:"group/member-item",addItemLabel:$L("Add Member ..."),swipeToDelete:true,reorderable:false,itemsProperty:"members"}, this.model);
-		
-		this.controller.setupWidget('ok-button', {}, {label:(this.newGroup) ? $L("Add Group") : $L("Save"),buttonClass:"affirmative"});
-		this.controller.setupWidget('cancel-button', {}, {label:$L("Cancel"),buttonClass:"secondary"});
-		
-		this.displayPhoto();
 	},
 	activate:function(event) {
 		this.controller.listen(this.controller.get('group-members-list'), Mojo.Event.listAdd, this.handlers.onAddMember);
 		this.controller.listen(this.controller.get('group-members-list'), Mojo.Event.listTap, this.handlers.onEditMember);
-		this.controller.listen(this.controller.get('ok-button'), Mojo.Event.tap, this.handlers.onSaveGroup);
-		this.controller.listen(this.controller.get('cancel-button'), Mojo.Event.tap, this.handlers.onCancel);
+		this.controller.listen(this.controller.get('group-members-list'), Mojo.Event.listDelete, this.handlers.onDeleteMember);
 		this.controller.listen(this.controller.get('group-photo'), Mojo.Event.tap, this.handlers.onPhotoTap);
 		
-		if(event && event.personId) {
-			this.addSelectedContact(event.details.record);
+		if(event) {
+			if(event.personId) {
+				// webOS 1.x
+				this.addSelectedContact(event.details.record);
+			} else if(event._id) {
+				// webOS 2.x
+				var c = LBB.Util.convertContact(event);
+				this.addSelectedContact(c);
+			}
 		}
+		
+		this.displayPhoto();
 	},
 	deactivate:function() {
 		this.controller.stopListening(this.controller.get('group-members-list'), Mojo.Event.listAdd, this.handlers.onAddMember);
 		this.controller.stopListening(this.controller.get('group-members-list'), Mojo.Event.listTap, this.handlers.onEditMember);
-		this.controller.stopListening(this.controller.get('ok-button'), Mojo.Event.tap, this.handlers.onSaveGroup);
-		this.controller.stopListening(this.controller.get('cancel-button'), Mojo.Event.tap, this.handlers.onCancel);
+		this.controller.stopListening(this.controller.get('group-members-list'), Mojo.Event.listDelete, this.handlers.onDeleteMember);
 		this.controller.stopListening(this.controller.get('group-photo'), Mojo.Event.tap, this.handlers.onPhotoTap);		
 	},
 	cleanup:function() {
@@ -85,6 +87,11 @@ var _GroupAssistant = {
 		this.showDialog(event.item, "edit");
 		event.stopPropagation();
 	},
+	onDeleteMember:function(event) {
+		LBB.Util.log("> onDeleteMember");
+		
+		this.model.members.splice(event.index, 1);
+	},	
 	onSelectSource:function(command) {
 		switch(command) {
 			case "incontact":
@@ -102,7 +109,14 @@ var _GroupAssistant = {
 		}
 	},
 	onPhotoTap:function(event) {
-		var items = [{label:$L("Select Photo"),command:"from-phone"},{label:$L("Use Member Photo"),command:"from-members"}]
+		var items = [{label:$L("Select Photo"),command:"from-phone"}]
+		
+		// add from-members item if we have any members
+		if(this.model.members.length > 0) {
+			items.push({label:$L("Use Member Photo"),command:"from-members"});
+		}
+		
+		// add remove if we have a photo
 		if(this.model.photo.length > 0) {
 			items.push({label:$L("Remove Photo"),command:"remove"});
 		}
@@ -125,7 +139,8 @@ var _GroupAssistant = {
 			case "from-phone":
 				Mojo.FilePicker.pickFile(params, this.controller.stageController);
 				break;
-			case "from-member":
+			case "from-members":
+				this.controller.stageController.pushScene("group-photo", this.model);
 				break;
 			case "remove":
 				this.model.photo = "";
@@ -158,16 +173,11 @@ var _GroupAssistant = {
 		this.controller.get('group-members-list').mojo.invalidateItems(0);
 	},
 	displayPhoto:function() {
-		var photo;
-		
-		if(this.model.photo.length == 0) {
-			photo = "inherit"
-		} else {
+		if(this.model.photo.length > 0) {
 			var size = 60;
-			photo = "url(/var/luna/data/extractfs" + encodeURIComponent(this.model.photo) + ":0:0:"+size+":"+size+":4)";			
+			var photo = "url(/var/luna/data/extractfs" + encodeURIComponent(this.model.photo) + ":0:0:"+size+":"+size+":4)";
+			$(this.controller.get("group-photo")).setStyle({backgroundImage:photo})			
 		}
-		
-		$(this.controller.get("group-photo")).setStyle({backgroundImage:photo})
 	},
 	showDialog:function(contact, mode) {
 		LBB.Util.log("> GroupAssistant.showDialog");

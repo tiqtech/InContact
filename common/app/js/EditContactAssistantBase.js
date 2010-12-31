@@ -62,6 +62,8 @@ var _EditContactAssistantBase = {
 			}.bind(this)
 		}
 		
+		this.controller.setupWidget("updateContactSpinner", {spinnerSize:Mojo.Widget.spinnerLarge}, {});
+		
 		this.controller.setupWidget('contactPointList', {
 				itemTemplate: "edit-contact/button-row",
 				swipeToDelete: false,
@@ -78,10 +80,35 @@ var _EditContactAssistantBase = {
 		this.updateIcons();
 		
 		this.controller.get('edit-contact-name').update(Mojo.Widget.QuickContact.formatContactName(null, this.model));
-		
 		this.controller.get('edit-contact-photo').style.backgroundImage = "url(" + this.model.qc.largePhoto + ")";
 		
 		this.controller.watchModel(this.buttonModel, this, this.handlers.onModelChanged);
+		
+		this.controller.setupWidget(Mojo.Menu.appMenu, {omitDefaultItems: true}, {items:[{label: $L("Update"),command: "update"}]});		
+	},
+	activate:function(event) {
+		LBB.Util.log("> EditContactAssistant.activate");
+
+		$(this.controller.get("updateContactScrim")).hide();		
+		this.controller.get("updateContactSpinner").mojo.stop();
+		
+		if (event) {
+			if(event.personId) {
+				// webOS 1.x
+				LBB.Util.log("adding contact",event.details.record.id);
+				this.onContactSelected(event.details.record);
+			} else if(event._id) {
+				// webOS 2.x
+				LBB.Util.log("adding contact",event._id);
+				var c = LBB.Util.convertContact(event);
+				this.onContactSelected(c);
+			}
+		}
+		
+		this.controller.listen(this.controller.get("updateContactLink"), Mojo.Event.tap, this.handlers.onUpdateContact);
+	},
+	deactivate:function(event) {
+		this.controller.stopListening(this.controller.get("updateContactLink"), Mojo.Event.tap, this.handlers.onUpdateContact);
 	},
 	cleanup:function() {
 		for(var i=0;i<4;i++) {
@@ -114,6 +141,62 @@ var _EditContactAssistantBase = {
 		event.stopPropagation();
 		
 		return {node:node, model:item};
+	},
+	onUpdateContact:function(command) {
+		LBB.Util.log("> onUpdateContact");
+		var prefs = LBB.Preferences.getInstance();
+		var msg = prefs.getProperty("hideUpdateContactMessage");
+		
+		if(command === "ok" || msg == true) {
+			if(msg != true) {
+				LBB.Util.log("updating preference");
+				prefs.setProperty("hideUpdateContactMessage", true);
+			}
+			
+			this.controller.get("updateContactSpinner").mojo.start();
+			$(this.controller.get("updateContactScrim")).show();
+			
+			LBB.Util.log("pushing people picker");
+			this.controller.stageController.pushScene(
+			  { appId :'com.palm.app.contacts', name: 'list' },
+			  { mode: 'picker', message: $L("Updating") + " " + Mojo.Widget.QuickContact.formatContactName(null, this.model)}
+			 );	
+		} else {
+			LBB.Util.log("showing info dialog");
+			this.controller.showAlertDialog({
+			    onChoose: this.handlers.onUpdateContact,
+			    title: $L("Update Contact"),
+			    message: $L("Please select the desired contact on the next screen and its information will be updated."),
+			    choices:[
+			        {label:$L("OK"), value:"ok", type:'affirmative'}    
+			    ]
+			});
+		}
+	},
+	handleCommand:function(event) {
+		if (event.type === Mojo.Event.command && event.command === "update") {
+			this.onUpdateContact();
+			event.stopPropagation();
+		}
+	},
+	onContactSelected:function(details) {
+		LBB.Util.log("> EditContactAssitant.onContactSelected");
+		
+		var pages = LBB.Model.getInstance().getPages();
+		for(var i=0;i<pages.length;i++) {
+			var c = pages[i].findContactById(this.model.id);
+			if(c.contact) {
+				Mojo.Widget.QuickContact.merge(c.contact, details);
+			}
+		}
+		
+		// set the modified flag so main will save and reload QC widgets
+		LBB.Model.getInstance().modified = true;
+		
+		Mojo.Log.info("photo=",this.model.qc.largePhoto);
+		
+		this.controller.get('edit-contact-name').update(Mojo.Widget.QuickContact.formatContactName(null, this.model));
+		this.controller.get('edit-contact-photo').style.backgroundImage = "url(" + this.model.qc.largePhoto + ")";
 	},
 	onItemRendered:function(listWidget, itemModel, itemNode) {
 		var i = itemModel.index;

@@ -8,8 +8,9 @@ var _QuickGroup = {
 		var hasEmail = false;
 		var hasSMS = false;
 		
-		for(var i=0;i<m.members.length && !hasEmail && !hasSMS;i++) {
+		for(var i=0;i<m.members.length && !(hasEmail && hasSMS);i++) {
 			if(m.members[i].email != "") {
+				Mojo.Log.info("hasEmail")
 				hasEmail = true;
 			}
 			
@@ -38,12 +39,6 @@ var _QuickGroup = {
 		// hide 2 and 3 (3rd and 4th icons)
 		this.getIcon(2).addClassName("inactive");
 		this.getIcon(3).addClassName("inactive");
-	},
-	render:function($super) {
-		this.loadContactPhoto();
-		this.controller.get(this.attributes.id+"_contactName").update(this.controller.model.name);
-		
-		$super();
 	},
 	getLargePhotoPath:function($super) {
 		return this.controller.model.photo;

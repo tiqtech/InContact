@@ -139,6 +139,58 @@ LBB.Util =
 			onSuccess: function(e) { Mojo.Log.info("Set icon"); },
 			onFailure: function(e) { Mojo.Log.info("Failed to set icon",Object.toJSON(e)); }
 		});
+	},
+	// converts contact from webOS 2.0 schema to 1.x schema
+	// may migrate to a schema-independent format later
+	convertContact:function(c) {
+		var contact = {
+			id:new Date().getTime(),
+			firstName:(c.name) ? c.name.givenName : undefined,
+			lastName:(c.name) ? c.name.familyName : undefined,
+			pictureLoc:null,
+			pictureLocBig:null,
+			phoneNumbers:[],
+			emailAddresses:[],
+			imNames:[]
+		}
+		
+		if(c.phoneNumbers) {
+			var d = new Date().getTime();
+			for(var i=0;i<c.phoneNumbers.length;i++) {
+				contact.phoneNumbers.push({
+					id:d+i,
+					value:c.phoneNumbers[i].value
+				})
+			}
+		}
+		
+		if(c.emails) {
+			var d = new Date().getTime();
+			for(var i=0;i<c.emails.length;i++) {
+				contact.emailAddresses.push({
+					id:d+i,
+					value:c.emails[i].value
+				})
+			}
+		}
+		
+		if(c.ims) {
+			var d = new Date().getTime();
+			for(var i=0;i<c.ims.length;i++) {
+				contact.imNames.push({
+					id:d+i,
+					value:c.ims[i].value,
+					serviceName:c.ims[i].type.substring(5)
+				})
+			}
+		}
+		
+		if(c.photos) {
+			contact.pictureLocBig = c.photos.bigPhotoPath;
+			contact.pictureLoc = c.photos.listPhotoPath;
+		}
+		
+		return contact;
 	}
 }
 
@@ -151,7 +203,6 @@ var HandlerManager = Class.create({
 			for(var k in owner) {
 				// search for any function that starts with onX* or handleX*
 				if(Object.isFunction(owner[k]) && k.match(/^(on|handle)[A-Z].*/)) {
-					Mojo.Log.info("adding bind for",k);
 					m.push(k);
 				}
 			}

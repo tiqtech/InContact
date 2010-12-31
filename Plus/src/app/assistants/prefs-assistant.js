@@ -26,6 +26,9 @@ var _PrefsAssistant = {
 		this.controller.listen(this.controller.get('launcherPreferencesList'), Mojo.Event.listReorder, this.handlers.onLauncherReorder);
 	},
 	onLauncherReorder:function(event) {
+		this.launcherItems.splice(event.fromIndex, 1);
+		this.launcherItems.splice(event.toIndex, 0, event.item);
+		
 		this.prefs.setProperty("launcherApps", this.launcherItems);
 	}
 };

@@ -74,14 +74,22 @@ var _MainAssistant = {
 		var r = [];
 		var c = this.getCurrentPageModel().getContacts();
 		for(var i=0;i<c.length;i++) {
-			for(var j=0;j<4;j++) {
-				var pref = c[i].qc.selections[j];
-				if(pref && pref.action == action) {
-					var cp = Mojo.Widget.QuickContact.getPointById(c[i],action,pref.details);
-					if (cp) {
-						r.push(cp);
+			if (c[i].type === "group") {
+				for(var j=0;j<c[i].members.length;j++) {
+					if(c[i].members[j][action]) {
+						r.push({value:c[i].members[j][action]});
 					}
-				}	
+				}
+			} else {
+				for (var j = 0; j < 4; j++) {
+					var pref = c[i].qc.selections[j];
+					if (pref && pref.action == action) {
+						var cp = Mojo.Widget.QuickContact.getPointById(c[i], action, pref.details);
+						if (cp) {
+							r.push(cp);
+						}
+					}
+				}
 			}
 		}
 		
