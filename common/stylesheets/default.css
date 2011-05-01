@@ -46,9 +46,15 @@ body.palm-default {
 	z-index:10000;
 }
 
+#h-scroller-scroll-wrapper {
+	position:relative;
+}
+
 .ContactScroller
 {
-	float:left;
+	position:absolute;
+	top:0px;
+	bottom:0px;
 	-webkit-border-radius:20px;
 	background-color:rgba(255,255,255,.3);
 	margin:3px;
@@ -345,6 +351,24 @@ body.palm-default {
 .edit-contact-scene .actionButton .palm-button-wrapper
 {
 	font-size:12pt;
+}
+
+.edit-contact-scene .details-menu-item .label {
+	width:25%;
+	float:right;
+	text-align:right;
+}
+
+.edit-contact-scene .details-menu-item .value {
+	width:65%;
+	padding-left:5px;
+	float:left;
+	line-height:50px;
+}
+
+
+.edit-contact-scene .details-menu-item .label IMG{
+  margin-top:-10px;
 }
 
 /** group scene **/

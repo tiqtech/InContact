@@ -22,7 +22,7 @@ var _HelpAssistant = {
 		}
 	},
 	loadRemoteHelp:function(xhr) {
-		Mojo.Log.info("> loadRemoteHelp");
+		LBB.Util.log("> loadRemoteHelp");
 		
 		if(xhr.status == 0) {
 			this.loadLocalHelp();
@@ -32,7 +32,7 @@ var _HelpAssistant = {
 		this.loadHelp(xhr.responseText.evalJSON());
 	},
 	loadLocalHelp:function() {
-		Mojo.Log.info("> loadLocalHelp");
+		LBB.Util.log("> loadLocalHelp");
 		new Ajax.Request(Mojo.appPath + "/app/models/help.json", {
 			"method":"get",
 			"onSuccess": function(xhr){
@@ -41,7 +41,7 @@ var _HelpAssistant = {
 		});
 	},
 	loadHelp:function(content) {
-		Mojo.Log.info("> loadHelp");
+		LBB.Util.log("> loadHelp");
 		
 		// stop loading spinner
 		this.controller.get("help-loading-scrim").hide();
@@ -107,17 +107,17 @@ var _HelpAssistant = {
 		}.bind(this));
 	},
 	onTopicTap:function(e) {
-		Mojo.Log.info("> onTopicTap")
+		LBB.Util.log("> onTopicTap")
 		e.stopPropagation();
 		this.showTopic(e.item.key, true);
 	},
 	onSeeAlsoTap:function(e) {
-		Mojo.Log.info("> onSeeAlsoTap");
+		LBB.Util.log("> onSeeAlsoTap");
 		e.stopPropagation();
 		this.showTopic(e.currentTarget.getAttribute("name"), false);
 	},
 	showTopic:function(key, closeIfOpen) {
-		Mojo.Log.info("> showTopic");
+		LBB.Util.log("> showTopic");
 		
 		// close any open drawers
 //		$A(this.controller.select(".topic-drawer")).each(function(drawer) {

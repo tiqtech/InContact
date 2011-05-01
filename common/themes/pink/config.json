@@ -1,15 +1,15 @@
 {
 	"list":
 	{
-		"bgcolor":"rgb(255,255,255)"
+		"bgcolor":"#FBEFF4"
 	},
 	"contact":
 	{
-		"bordercolor":"rgb(255,255,255)"
+		"bordercolor":"#FBEFF4"
 	},
 	"body":
 	{
-		"bgcolor":"rgb(114,111,128)",
+		"bgcolor":"#fd6e8a",
 		"bgimage":"bg.png"
 	},
 	"commandmenu":{

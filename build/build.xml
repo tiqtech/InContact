@@ -2,25 +2,26 @@
 <project name="base-build">
 
 	<property name="palm-bin" value="c:/program files (x86)/palm2/sdk/bin"/>
+	<property name="TMP" value="../.tmp"/>
 
 	<target name="clean">
 		<echo message="Removing temp files"/>
-		<delete dir="../tmp" />
+		<delete dir="${TMP}" />
 	</target>
 
 	<target name="init" depends="clean">
-		<mkdir dir="../tmp" />
-		<copy todir="../tmp">
+		<mkdir dir="${TMP}" />
+		<copy todir="${TMP}">
 			<fileset dir="../../common"/>
 		</copy>
-		<copy todir="../tmp" overwrite="true">
+		<copy todir="${TMP}" overwrite="true">
 			<fileset dir="../src"/>
 		</copy>
 	</target>
 
 	<target name="package" depends="get-app-info,generate-sources">
 		<exec executable="${palm-bin}/palm-package.bat">
-			<arg value="../tmp" />
+			<arg value="${TMP}" />
 		</exec>
 		<property name="ipkFile" value="${appInfo.id}_${appInfo.version}_all.ipk"/>
 	</target>
@@ -55,7 +56,7 @@
 	</target>
 	
 	<target name="get-app-info" depends="init">
-		<loadfile property="appInfo" srcFile="../tmp/appInfo.json"/>
+		<loadfile property="appInfo" srcFile="${TMP}/appInfo.json"/>
 		<script language="javascript">
 		<![CDATA[
 			var appInfo = eval('('+project.getProperty("appInfo") + ')');
@@ -74,7 +75,7 @@
 			
 			// Create a <fileset dir="" includes=""/>
 			fs = project.createDataType("fileset");
-			fs.setDir( new File("../tmp") );
+			fs.setDir( new File("../.tmp") );
 			fs.setIncludes("**/*.js");
 			
 			// Get the files (array) of that fileset
@@ -95,7 +96,7 @@
 			
 			echo = project.createTask("echo");
 			echo.setMessage("[\n" + sources.join(",\n") + "\n]");
-			echo.setFile(new File("../tmp/sources.json"));
+			echo.setFile(new File("../.tmp/sources.json"));
 			echo.perform();
 			
 			echo = project.createTask("echo");

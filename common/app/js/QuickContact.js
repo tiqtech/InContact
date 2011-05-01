@@ -114,18 +114,22 @@ var _QuickContact = {
 		if(this.attributes.container == "grid") {
 			var photoPath = this.getLargePhotoPath();
 			
-			var main = this.controller.get(this.attributes.id + "_photo");
-			var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding*2)
-			var photo = "/var/luna/data/extractfs" + encodeURIComponent(photoPath) + ":0:0:"+size+":"+size+":4";
-	
-			main.setStyle({
-				"background":"url('" + photo + "')",
-				"backgroundPosition":"center center",
-				"backgroundRepeat":"no-repeat"
-			});
+			if (!!photoPath) {
+				var main = this.controller.get(this.attributes.id + "_photo");
+				var size = this.attributes.dimensions.size - (this.attributes.dimensions.padding * 2)
+				var photo = "/var/luna/data/extractfs" + encodeURIComponent(photoPath) + ":0:0:" + size + ":" + size + ":4";
+				
+				main.setStyle({
+					"background": "url('" + photo + "')",
+					"backgroundPosition": "center center",
+					"backgroundRepeat": "no-repeat"
+				});
+			}
 		} else { // list view
 			var photoPath = this.getSmallPhotoPath();
-			this.controller.get(this.attributes.id + "_img").setAttribute('src', photoPath);
+			if (!!photoPath) {
+				this.controller.get(this.attributes.id + "_img").setAttribute('src', photoPath);
+			}
 		}
 	},
 	getIcon:function(index) {
@@ -368,10 +372,8 @@ Mojo.Widget.QuickContact.merge = function(originalModel, newModel) {
 	for(var i=0;i<props.length;i++) {
 		var k = props[i];
 		if (newModel[k]) {
-			Mojo.Log.info("updating", k, originalModel[k], newModel[k])
 			originalModel[k] = newModel[k];
 		} else {
-			Mojo.Log.info("deleting", k);
 			delete originalModel[k];
 		}
 	}

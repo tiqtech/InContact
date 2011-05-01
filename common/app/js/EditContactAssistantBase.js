@@ -25,7 +25,18 @@ var _EditContactAssistantBase = {
 		{value:'bulb'},
 		{value:'cross'}
 	],
-	areActionsReorderable:false,
+	LABELS:[
+		$L("Home"),
+		$L("Work"),
+		$L("Other"),
+		$L("Mobile"),
+		$L("Pager"),
+		$L("Personal Fax"),
+		$L("Work Fax"),
+		$L("Main"),
+		$L("SIM")
+	],
+ 	areActionsReorderable:false,
 	initialize:function(model) {
 		this.model = model;
 		this.handlers = new HandlerManager(this);
@@ -193,8 +204,6 @@ var _EditContactAssistantBase = {
 		// set the modified flag so main will save and reload QC widgets
 		LBB.Model.getInstance().modified = true;
 		
-		Mojo.Log.info("photo=",this.model.qc.largePhoto);
-		
 		this.controller.get('edit-contact-name').update(Mojo.Widget.QuickContact.formatContactName(null, this.model));
 		this.controller.get('edit-contact-photo').style.backgroundImage = "url(" + this.model.qc.largePhoto + ")";
 	},
@@ -243,15 +252,22 @@ var _EditContactAssistantBase = {
 		
 		items.push({label:this.ACTIONS[n.model.action].label})
 		items.push({
-			label:$L("No Selection"),
+			value:$L("No Selection"),
 			command:Mojo.Widget.QuickContact.SelectNone
 		});
 		
 		for(var i=0;i<list.length;i++) {
+			var label;
+			if (list[i].serviceName) {
+				label = "<img src='images/icons/" + list[i].serviceName + ".png'>";
+			} else {
+				label = this.LABELS[list[i].label] || this.LABELS[2];
+			}
+			
 			items.push({
-				label:list[i].value,
-				command:list[i].id,
-				iconPath:(list[i].serviceName) ? "images/icons/" + list[i].serviceName + ".png" : undefined
+				value:list[i].value,
+				label: label,
+				command:list[i].id
 			});
 		}
 		
@@ -263,7 +279,8 @@ var _EditContactAssistantBase = {
 					this.controller.modelChanged(this.buttonModel);
 				}
 			},
-			items:items
+			items:items,
+			itemTemplate:"edit-contact/details-menu"
 		});
 	}
 };

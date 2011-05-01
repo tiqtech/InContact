@@ -6,6 +6,21 @@ var _PrefsAssistantBase = {
 	},
 	setup:function() {
 		LBB.Util.log("> LBB.Preferences.setup");
+		
+		var themes = [
+			{label:$L("Default"),value:"default"},
+			{label:$L("Blue Steel"),value:"bluesteel"},
+			{label:$L("Spring"),value:"spring"},
+			{label:$L("Fresh"),value:"fresh"},
+			{label:$L("Goldfish"),value:"goldfish"},
+			{label:$L("Pretty in Pink"),value:"pink"}
+		];
+		
+		var icons = [
+			{label:$L("Default"),value:"icon"},
+			{label:$L("Transparent"),value:"alt-icon"},
+			{label:$L("Phone"),value:"phone"}
+		];
 	
 		this.prefs = LBB.Preferences.getInstance();
 		
@@ -31,12 +46,12 @@ var _PrefsAssistantBase = {
 
 		// icon
 		//this.controller.get('labelIcon').insert($L("Launcher Icon"));
-		this.controller.setupWidget('fieldIcon', {label:$L("Launcher Icon"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:[{label:$L("Default"),value:"icon"},{label:$L("Phone"),value:"phone"}]},this.prefs.getPropertyObject("icon"));
+		this.controller.setupWidget('fieldIcon', {label:$L("Launcher Icon"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:icons},this.prefs.getPropertyObject("icon"));
 		Mojo.Event.listen(this.controller.get('fieldIcon'), Mojo.Event.propertyChange, this.handlers.handleIconChange);
 		
 		// theme
 		//this.controller.get('labelTheme').insert($L("Theme"));
-		this.controller.setupWidget('fieldTheme', {label:$L("Theme"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:[{label:$L("Default"),value:"default"},{label:$L("Blue Steel"),value:"bluesteel"}, {label:$L("Spring"),value:"spring"}]},this.prefs.getPropertyObject("theme"));
+		this.controller.setupWidget('fieldTheme', {label:$L("Theme"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:themes},this.prefs.getPropertyObject("theme"));
 		Mojo.Event.listen(this.controller.get('fieldTheme'), Mojo.Event.propertyChange, this.handlers.handleThemeChange);
 		
 		// name position
@@ -91,9 +106,9 @@ var _PrefsAssistantBase = {
 	handleAllowRotateChange:function(event) {
 		this.updateProperty("allowRotate", event.value);
 	},
-	handleAsyncPhotoChange:function(event) {
-		this.updateProperty("asyncPhoto", event.value);
-	},
+//	handleAsyncPhotoChange:function(event) {
+//		this.updateProperty("asyncPhoto", event.value);
+//	},
 	//handleInitialViewChange:function(event) {
 	//	this.updateProperty("initialView", event.value);
 	//},

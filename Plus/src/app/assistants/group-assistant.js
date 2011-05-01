@@ -163,7 +163,7 @@ var _GroupAssistant = {
 		this.controller.stageController.popScene();
 	},
 	addMember:function(contact) {
-		Mojo.Log.info("> GroupAssistant.addMember")
+		LBB.Util.log("> GroupAssistant.addMember")
 		if(contact) {
 			this.model.members.push(contact);
 			this.controller.get('group-members-list').mojo.noticeAddedItems(0, [contact]);

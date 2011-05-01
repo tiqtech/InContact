@@ -1,42 +1,41 @@
 var _MainAssistant = {
-	initialize:function($super, model, prefs) {
-		$super(model, prefs);
+	initialize:function($super, isDeferred) {
+		$super(isDeferred);
 		
 		// update "Add" item to be submenu
 		this.contactButtonItems[1] = {label:$L("Add"),items:[{label:$L("Contact"),command:"add"},{label:$L("Group"),command:"add-group"}]};
-		
-		//this.handlers.bind(["onPageButtonTap","onPageAction"]);
-	},
-	setup:function($super) {
-		$super();
-		
-		this.controller.get('pageButton').show();
-		this.controller.get('pageTicks').show();
-		
-		this.controller.listen(this.controller.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
 	},
 	activate:function($super, event) {
 		$super(event);
 		
+		if(!this.deferredSetupComplete) return;
+		
+		this.controller.listen(this.$.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
+		
 		// captures changes to launcher from preferences
 		LBB.Util.updateCommandMenuModel(this.controller);
 	},
-	cleanup:function($super) {
-		this.controller.stopListening(this.controller.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
+	deactivate:function($super) {
+		$super();
+		this.controller.stopListening(this.$.get('pageButton'), Mojo.Event.tap, this.handlers.onPageButtonTap);
+	},
+	deferredSetup:function($super) {
+		$super();
 		
-		$super();	// calling at end because super calls handlers.release()
+		this.$.get('pageButton').show();
+		this.$.get('pageTicks').show();
 	},
 	updateScrollers:function() {
 		// re-setup h-scroller
 		this.controller.setupWidget('h-scroller', {mode:'horizontal-snap'}, this.hScrollerModel);
-		this.controller.newContent(this.controller.get('h-scroller'));
+		this.controller.newContent(this.$.get('h-scroller'));
 		this.resizeScroller();
 	},
 	setupPageScroller:function($super, i) {
 		$super(i);
 		
 		var e = new Element("div", {"id":"page" + i + "-tick-mark", "class":"tickMark"});
-		this.controller.get('pageTicks').insert(e);
+		this.$.get('pageTicks').insert(e);
 	},
 	getTickMark:function(page, idOnly) {
 		return this.getPageElement("tick-mark", page, idOnly);
@@ -47,7 +46,7 @@ var _MainAssistant = {
 		this.onClearSelected(undefined, true);
 		
 		// snap to current page.  insulate from incomplete setup.
-		var hScroller = this.controller.get('h-scroller');
+		var hScroller = this.$.get('h-scroller');
 		if(hScroller && hScroller.mojo) {
 			hScroller.mojo.setSnapIndex(this.activePage, true);
 		}
@@ -68,7 +67,7 @@ var _MainAssistant = {
 		}
 	},
 	setPageTitle:function() {
-		this.controller.get('pageTitle').update(this.getCurrentPageModel().getTitle());
+		this.$.get('pageTitle').update(this.getCurrentPageModel().getTitle());
 	},
 	getAllPoints:function(action) {
 		var r = [];
@@ -96,7 +95,7 @@ var _MainAssistant = {
 		return r;
 	},
 	onPageChangeTimer:function() {
-		this.controller.get('h-scroller').mojo.setSnapIndex(this.activePage+this.pageChangeDirection, true);
+		this.$.get('h-scroller').mojo.setSnapIndex(this.activePage+this.pageChangeDirection, true);
 		
 		// reset
 		clearTimeout(this.pageChangeTimer);
@@ -152,7 +151,7 @@ var _MainAssistant = {
 			this.onContactSelected(model);
 		} else {
 			var id = 'page' + this.activePage + '-qc-' + model.id;
-			this.controller.get(id).mojo.render();
+			this.$.get(id).mojo.render();
 		}
 	},
 	onPageAction:function(command) {
@@ -186,7 +185,7 @@ var _MainAssistant = {
 		
 		// setup new page scroller and add to snapElements
 		this.setupPageScroller(index);
-		this.hScrollerModel.snapElements.x.push(this.controller.get('page'+index+'-scroller'));
+		this.hScrollerModel.snapElements.x.push(this.$.get('page'+index+'-scroller'));
 		
 		// update scrollers
 		this.updateScrollers();
@@ -241,8 +240,8 @@ var _MainAssistant = {
 			}
 			
 			// remove html elements
-			this.getScroller().remove();
-			this.getTickMark().remove();
+			this.$.remove(this.getScroller());
+			this.$.remove(this.getTickMark());
 
 			// remove from model
 			p.splice(this.activePage, 1);
@@ -252,7 +251,6 @@ var _MainAssistant = {
 			// destPage will be out of bounds for the array of pages so we must decrement to last page.
 			// otherwise, destPage is the correct page to focus
 			var activePage = (destPage == p.length) ? p.length - 1 : destPage;
-			Mojo.Log.info(this.activePage, activePage, destPage, p.length);
 			
 			this.setActivePage(activePage);
 			this.updateScrollers();

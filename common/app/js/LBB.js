@@ -45,22 +45,22 @@ LBB.Util =
 		var i = this.appMenuModel.items;
 		
 		i.clear();
-		i.push(Mojo.Menu.editItem);
+		i.push({label: $L("Preferences"),command: Mojo.Menu.prefsCmd});
 		if(scene == "grid") {
-			var currentMode = Mojo.Controller.getAppController().assistant.settings.mode;
-			var mode, label;
-			if(currentMode == "normal") {
-				label = $L("Driving Mode");
-				mode = "driving";
-			} else {
-				label = $L("Normal Mode");
-				mode = "normal";
-			}
+//			var currentMode = Mojo.Controller.getAppController().assistant.settings.mode;
+//			var mode, label;
+//			if(currentMode == "normal") {
+//				label = $L("Driving Mode");
+//				mode = "driving";
+//			} else {
+//				label = $L("Normal Mode");
+//				mode = "normal";
+//			}
 			
-			i.push({label: label,  shortcut:'m', command:"mode-"+mode});
+			i.push({label: $L("Toggle Driving Mode"),  shortcut:'m', command:"mode-toggle"});
 		}
 		
-		i.push({label: $L("Preferences"),command: Mojo.Menu.prefsCmd});
+		
 		i.push({label: $L("Help"),command: Mojo.Menu.helpCmd});
 		i.push({label: $L("About"),command: "scene-about"});
 		
@@ -98,6 +98,7 @@ LBB.Util =
 	loadTheme:function(controller) {
 		var prefs = LBB.Preferences.getInstance();
 		var theme = prefs.getProperty("theme");
+
 		new Ajax.Request(Mojo.appPath + "/themes/" + theme + "/config.json", {
 			method:"get",
 			onSuccess:function(xhr) { 
@@ -136,7 +137,6 @@ LBB.Util =
 		var updateIconRequest = new Mojo.Service.Request('palm://com.palm.applicationManager', {
     		method: 'updateLaunchPointIcon',
     		parameters: { launchPointId: Mojo.appInfo.id + '_default', icon: iconUrl},
-			onSuccess: function(e) { Mojo.Log.info("Set icon"); },
 			onFailure: function(e) { Mojo.Log.info("Failed to set icon",Object.toJSON(e)); }
 		});
 	},
@@ -152,6 +152,11 @@ LBB.Util =
 			phoneNumbers:[],
 			emailAddresses:[],
 			imNames:[]
+		}
+		
+		// if contact doesn't have first nor last name but org name, use it
+		if(!contact.firstName && !contact.lastName && c.organization.name) {
+			contact.firstName = c.organization.name
 		}
 		
 		if(c.phoneNumbers) {
@@ -185,8 +190,18 @@ LBB.Util =
 			}
 		}
 		
+		var selectOne = function() {
+			for(var i=0;i<arguments.length;i++) {
+				if(arguments[i] !== "") {
+					return arguments[i];
+				}
+			}
+			
+			return "";
+		}
+		
 		if(c.photos) {
-			contact.pictureLocBig = c.photos.bigPhotoPath;
+			contact.pictureLocBig = selectOne(c.photos.bigPhotoPath, c.photos.squarePhotoPath, c.photos.listPhotoPath);
 			contact.pictureLoc = c.photos.listPhotoPath;
 		}
 		
@@ -236,6 +251,53 @@ var HandlerManager = Class.create({
 		} catch (e) {
 			Mojo.Log.warn(e);
 		}
+	}
+});
+
+var ElementCache = Class.create({
+	initialize:function(assistant, ids) {
+		this.assistant = assistant;
+		this.cache = {};
+				
+		if(!!ids) {
+			for(var i=0;i<ids.length;i++) {
+				this.get(ids[i]);
+			}
+		}
+	},
+	get:function(id) {
+		return (!!this.cache[id]) ? this.cache[id] : this.assistant.controller.get(id);
+	},
+	refresh:function(id) {
+		// if id is provided, only refresh that item.  otherwise, validate all items
+		if(!!id) {
+			this.cache[id] = this.assistant.controller.get(id);
+			return this.cache[id];
+		} else {
+			for(var k in this.cache) {
+				var x = this.assistant.controller.get(k);
+				// only cache if it's valid
+				if(!!x) {
+					this.cache[k] = x;
+				}
+			}
+		}
+	},
+	release:function(id) {
+		// if id is provided, only refresh that item.  otherwise, validate all items
+		if(!!id) {
+			delete this.cache[id];
+		} else {
+			for(var k in this.cache) {
+				delete this.cache[k];
+			}
+		}
+	},
+	remove:function(idOrElement) {
+		var e = (!!idOrElement.id) ? idOrElement : this.get(idOrElement);
+		
+		this.assistant.controller.remove(e);
+		this.release(e.id);
 	}
 });
 
@@ -497,10 +559,6 @@ var _Preferences = {
 	initialize:function()
 	{
 		this.loaded = false;
-		this.readOnlyProperties = 
-		{
-			asyncPhoto:{value:true}
-		};
 		
 		this.launcherApps = [
 			{label: $L('Phone'), icon:'phone-icon', command:'launch-phone',value:true},
@@ -552,8 +610,39 @@ var _Preferences = {
 };
 
 LBB.Preferences = Class.create(_Preferences);
+
+LBB.Preferences.importData = function(prefs) {
+	try {
+		var inst = this.getInstance();
+		
+		// override current prefs with external if provided
+		if (prefs) {
+			for (var k in prefs) {
+				inst.properties[k] = prefs[k];
+			}
+		}
+	}catch(e) {
+		Mojo.Log.error("Error importing preferences", e)
+	}
+}
+
+LBB.Preferences.save = function() {
+	Mojo.Controller.getAppController().assistant.prefsCookie.put(this.getInstance().properties)
+	//this.getDatabase().add(this._key, this.getInstance().properties);	
+}
+
+LBB.Preferences.getInstance = function() {
+	return Mojo.Controller.getAppController().assistant._preferences;
+}
+
+LBB.Preferences.setInstance = function(inst) {
+	Mojo.Controller.getAppController().assistant._preferences = inst;
+}
+
+/* deprecated */
 LBB.Preferences._key = "prefs";
 
+/* deprecated */
 LBB.Preferences.load = function(db, provided, callback)
 {
 	try {
@@ -571,6 +660,7 @@ LBB.Preferences.load = function(db, provided, callback)
 	}
 };
 
+/* deprecated */
 LBB.Preferences.onLoadComplete = function(callback, externalPrefs, m) {	
 	try {
 		LBB.Util.log("> LBB.Preferences.onLoadComplete");
@@ -585,9 +675,12 @@ LBB.Preferences.onLoadComplete = function(callback, externalPrefs, m) {
 			inst.properties[k] = inst.readOnlyProperties[k];
 		}
 		
-		this.importData(externalPrefs);
 		
 		inst.loaded = true;
+		
+		// delete prefs from db now that they're stored in a cookie
+		this.save();
+		this.getDatabase().discard(this._key); // assuming success, ignoring failure ...
 		
 		if (callback) {
 			callback();
@@ -598,36 +691,12 @@ LBB.Preferences.onLoadComplete = function(callback, externalPrefs, m) {
 	}
 }
 
-LBB.Preferences.importData = function(externalPrefs) {
-	var inst = this.getInstance();
-	
-	// override current prefs with external if provided
-	if(externalPrefs && externalPrefs.properties) {
-		for (var k in externalPrefs.properties) {
-			inst.properties[k] = externalPrefs.properties[k];
-		}
-		
-		// commit changes
-		this.save();	
-	}
-}
-
-LBB.Preferences.save = function() {
-	this.getDatabase().add(this._key, this.getInstance().properties);	
-}
-
-LBB.Preferences.getInstance = function() {
-	return Mojo.Controller.getAppController().assistant._preferences;
-}
-
-LBB.Preferences.setInstance = function(inst) {
-	Mojo.Controller.getAppController().assistant._preferences = inst;
-}
-
+/* deprecated */
 LBB.Preferences.getDatabase = function() {
 	return Mojo.Controller.getAppController().assistant._preferencesDatabase;
 }
 
+/* deprecated */
 LBB.Preferences.setDatabase = function(db) {
 	Mojo.Controller.getAppController().assistant._preferencesDatabase = db;
 }

@@ -10,12 +10,10 @@ var _QuickGroup = {
 		
 		for(var i=0;i<m.members.length && !(hasEmail && hasSMS);i++) {
 			if(m.members[i].email != "") {
-				Mojo.Log.info("hasEmail")
 				hasEmail = true;
 			}
 			
 			if(m.members[i].sms != "") {
-				Mojo.Log.info("hasSMS")
 				hasSMS = true;
 			}
 		}
@@ -50,7 +48,7 @@ var _QuickGroup = {
 		return this.controller.model.name;
 	},
 	onIconTap:function($super, event) {
-		Mojo.Log.info("> QuickGroup.onIconTap");
+		LBB.Util.log("> QuickGroup.onIconTap");
 		
 		var c = this.controller.get(event.currentTarget);
 		var index = c.id.substring(c.id.lastIndexOf("_")+1);
@@ -62,7 +60,7 @@ var _QuickGroup = {
 		}
 	},
 	emailGroup:function(event) {
-		Mojo.Log.info("> QuickGroup.emailGroup")
+		LBB.Util.log("> QuickGroup.emailGroup")
 		
 		var recipients = [];
 		
@@ -86,7 +84,7 @@ var _QuickGroup = {
 		this.actionComplete(event, "email");
 	},
 	smsGroup:function(event) {
-		Mojo.Log.info("> QuickGroup.smsGroup");
+		LBB.Util.log("> QuickGroup.smsGroup");
 		
 		var recipients = [];
 		

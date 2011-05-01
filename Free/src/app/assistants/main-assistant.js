@@ -1,11 +1,24 @@
 var MainAssistant = Class.create(MainAssistantBase, {
-	initialize:function($super, model, prefs) {
-		$super(model, prefs);
-		this.handlers.bind(["onConfirmUpgrade", "onCancelUpgrade", "onShowUpgrade"]);
+	initialize:function($super, isDeferred) {
+		$super(isDeferred);
 	},
 	setup:function($super) {
 		$super();
 		this.setupUpgradeDialog();
+	},
+	activate:function($super, event) {
+		$super(event);
+		
+		this.controller.listen(this.$.get('upgrade-button'), Mojo.Event.tap, this.handlers.onConfirmUpgrade);
+		this.controller.listen(this.$.get('cancel-upgrade-button'), Mojo.Event.tap, this.handlers.onCancelUpgrade);
+		this.controller.listen(this.$.get('showUpgradeButton'), Mojo.Event.tap, this.handlers.onShowUpgrade)
+	},
+	deactivate:function($super) {
+		$super();
+		
+		this.controller.stopListening(this.$.get('upgrade-button'), Mojo.Event.tap, this.handlers.onConfirmUpgrade);
+		this.controller.stopListening(this.$.get('cancel-upgrade-button'), Mojo.Event.tap, this.handlers.onCancelUpgrade);
+		this.controller.stopListening(this.$.get('showUpgradeButton'), Mojo.Event.tap, this.handlers.onShowUpgrade)
 	},
 	cleanup:function($super) {
 		this.controller.stopListening(this.controller.get('upgrade-button'), Mojo.Event.tap, this.handlers.onConfirmUpgrade);
@@ -21,17 +34,15 @@ var MainAssistant = Class.create(MainAssistantBase, {
 		}
 	},
 	setupUpgradeDialog:function() {
-		this.controller.get('showUpgradeButton').show();
+		this.$.get('showUpgradeButton').show();
+		
+		this.$.get('upgrade-dialog').insert(Mojo.View.render({
+			"template": "main/upgrade"
+		}));
 		
 		this.controller.setupWidget('upgrade-button', {}, {label:$L("Download"),buttonClass:"affirmative"});
-		//this.controller.setupWidget('migrate-button', {}, {label:$L("Copy Data to Plus"),buttonClass:"primary"});
 		this.controller.setupWidget('cancel-upgrade-button', {}, {label:$L("Close"),buttonClass:"secondary"});
 		this.controller.setupWidget('upgrade-scroller', {mode:'vertical'}, {});
-		
-		this.controller.listen(this.controller.get('upgrade-button'), Mojo.Event.tap, this.handlers.onConfirmUpgrade);
-		//this.controller.listen(this.controller.get('migrate-button'), Mojo.Event.tap, this.handlers.onMigrateData);
-		this.controller.listen(this.controller.get('cancel-upgrade-button'), Mojo.Event.tap, this.handlers.onCancelUpgrade);
-		this.controller.listen(this.controller.get('showUpgradeButton'), Mojo.Event.tap, this.handlers.onShowUpgrade)
 	},
 	showUpgradeDialog:function(show) {
 		LBB.Util.log("> MainAssistant.showUpgradeDialog");

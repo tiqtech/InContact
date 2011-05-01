@@ -11,5 +11,8 @@
 	{
 		"bgcolor":"rgb(192,255,20)",
 		"bgimage":"bg.png"
+	},
+	"commandmenu":{
+		"bgImage":"cmdmenubg.png"
 	}
 }

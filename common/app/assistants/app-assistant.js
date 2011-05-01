@@ -3,8 +3,8 @@ var _AppAssistant = {
 		try {
 			LBB.Util.log("> AppAssistant.initialize");
 			
-			//Mojo.Timing.resume("AppAssistant");
-			//Mojo.Timing.resume("PreLoad");
+			Mojo.Timing.resume("AppAssistant");
+			Mojo.Timing.resume("PreLoad");
 			
 			// instantiate on Class and create a copy on this instance
 			this.Metrix = new Metrix();		
@@ -16,6 +16,8 @@ var _AppAssistant = {
 			this.showAbout = false;
 			this.state = {pref:false,model:false};
 			this.versionCookie = new Mojo.Model.Cookie("version");
+			this.prefsCookie = new Mojo.Model.Cookie("preferences");
+			
 			this.settings = {
 				mode:"normal"	// normal or driving
 			};
@@ -50,8 +52,7 @@ var _AppAssistant = {
 					// only post data when Main is created
 					this.Metrix.postDeviceData();
 					
-					LBB.Util.log("create stage");
-					//Mojo.Timing.resume("createStageWithCallback");
+					Mojo.Timing.resume("createStageWithCallback");
 					this.controller.createStageWithCallback({
 						name: "main",
 						lightweight: true
@@ -72,19 +73,48 @@ var _AppAssistant = {
 		}
 	},
 	startMainStage:function(stageController) {
-		//Mojo.Timing.pause("createStageWithCallback");
-		//Mojo.Timing.reportTiming("createStageWithCallback","createStageWithCallback");
+		Mojo.Timing.pause("createStageWithCallback");
+		Mojo.Timing.reportTiming("createStageWithCallback","createStageWithCallback");
 		try {
 			LBB.Util.log("> AppAssistant.startMainStage");
+			
+			// try to load prefs from cookie
+			this.loadPreferences();
+			
+			if(this.isNewVersion()) {
+				this.onShowAbout();
+			} else {
+				stageController.pushScene({
+					name:"main",
+					transition:Mojo.Transition.crossFade,
+					disableSceneScroller:true
+				}, true);
+			}
+
 			this.loadDepot(true);
 		} catch(e) {
 			LBB.Util.error("AppAssistant.startMainStage", e);
 		}
 	},
+	loadPreferences:function() {
+		LBB.Util.log("> loadPreferences");
+		var prefs = this.prefsCookie.get();
+		if(prefs) {
+			try {
+				LBB.Preferences.setInstance(new LBB.Preferences());
+				LBB.Preferences.importData(prefs);
+				this.onPrefsReady();
+				
+				return LBB.Preferences.getInstance();
+			} catch(e) {
+				Mojo.Log.error("Unable to load preferences from cookie.  Using defaults", e);
+			}			
+		}
+	},
 	loadDepot:function(isForeground) {
-		//Mojo.Timing.pause("PreLoad");
-		//Mojo.Timing.reportTiming("PreLoad", "PreLoad");
-		//Mojo.Timing.resume("DB");
+		Mojo.Timing.pause("PreLoad");
+		Mojo.Timing.reportTiming("PreLoad", "PreLoad");
+		Mojo.Timing.resume("DB");
 		try {
 			LBB.Util.log("> AppAssistant.loadDepot");
 			this.isForeground = isForeground
@@ -94,9 +124,9 @@ var _AppAssistant = {
 		}
 	},
 	updateIcon:function() {
-		var prefs = LBB.Preferences.getInstance();
+		var prefs = LBB.Preferences.getInstance() || this.loadPreferences();
 		
-		if(prefs && prefs.isLoaded()) {
+		if(prefs) {
 			LBB.Util.updateAppIcon();
 			this.setUpdateIconAlarm();
 		} else {
@@ -117,16 +147,21 @@ var _AppAssistant = {
 		});
 	},
 	onCreateDb:function() {
-		//Mojo.Timing.pause("DB");
-		//Mojo.Timing.reportTiming("DB","DB");
+		Mojo.Timing.pause("DB");
+		Mojo.Timing.reportTiming("DB","DB");
 		try {
 			LBB.Util.log("> AppAssistant.onCreateDb");
 			
-			//Mojo.Timing.resume("Model");
+			Mojo.Timing.resume("Model");
 			//Mojo.Timing.resume("Prefs");
 			// param 2 is for upgrade code
 			LBB.Model.load(this.db, undefined, this.handlers.onModelReady);
-			LBB.Preferences.load(this.db, undefined, this.handlers.onPrefsReady);
+			
+			// only load prefs from db if cookie load was unsuccessful.
+			// this will be deprecated in a future version.
+			if (!LBB.Preferences.getInstance()) {
+				LBB.Preferences.load(this.db, undefined, this.handlers.onPrefsReady);
+			}
 		} catch(e) {
 			LBB.Util.error("AppAssistant.onCreateDb", e);
 		}
@@ -142,16 +177,16 @@ var _AppAssistant = {
 		//Mojo.Timing.reportTiming("Prefs", "Prefs");
 	
 		this.state.pref = true;
+		this.settings.mode = LBB.Preferences.getInstance().getProperty("startMode");
 		this.onReady();
 	},
 	onModelReady:function() {
 		LBB.Util.log("> AppAssistant.onModelReady");
 		
-		//Mojo.Timing.pause("Model");
-		//Mojo.Timing.reportTiming("Model", "Model");
+		Mojo.Timing.pause("Model");
+		Mojo.Timing.reportTiming("Model", "Model");
 
 		this.state.model = true;
-		this.checkVersion();
 		this.onReady();
 	},
 	onReady:function() {
@@ -173,14 +208,10 @@ var _AppAssistant = {
 					var controller = this.controller.getStageProxy("main");		
 					controller.setWindowOrientation((rotate) ? "free" : "up");
 					
-					//Mojo.Timing.pause("AppAssistant");
-					//Mojo.Timing.reportTiming("AppAssistant", "AppAssistant");
-					
 					if(this.showAbout == true) {
 						this.onShowAbout();
 					} else {
-						//var view = prefs.getProperty("initialView");
-						this.onSwapScene("main");
+						controller.delegateToSceneAssistant("deferredSetup");
 					}
 				}
 			}
@@ -213,6 +244,9 @@ var _AppAssistant = {
 					case "mode-normal":
 						this.onModeChange("normal");
 						break;
+					case "mode-toggle":
+						this.onModeChange("toggle");
+						break;
 					case "launch-phone":
 						this.onLaunch("com.palm.app.phone");
 						break;
@@ -243,7 +277,16 @@ var _AppAssistant = {
 		}
 	},
 	onModeChange:function(mode) {
-		this.settings.mode = mode;
+		if (mode === "toggle") {
+			this.settings.mode = {
+				"driving": "normal",
+				"normal": "driving"
+			}[this.settings.mode];
+		}
+		else {
+			this.settings.mode = mode;
+		}
+		
 		var sceneController = this.controller.getStageController("main");
 		if (sceneController) {
 			var scene = sceneController.activeScene();
@@ -292,8 +335,10 @@ var _AppAssistant = {
 			controller.swapScene({
 				name:scene,
 				transition:Mojo.Transition.crossFade,
-				disableSceneScroller:(scene == "main")
+				disableSceneScroller:(scene === "main")
 			});
+			
+			// TODO: should probably check that Model is loaded so we can defer setup of main if necessary
 		}
 	},
 	onShowHelp:function() {
@@ -304,22 +349,24 @@ var _AppAssistant = {
 		LBB.Util.log("> AppAssistant.onShowAbout");
 		this.controller.getActiveStageController("card").pushScene("about");
 	},
-	checkVersion:function() {
+	isNewVersion:function() {
 		try {
-			LBB.Util.log("> AppAssistant.checkVersion");
+			LBB.Util.log("> AppAssistant.isNewVersion");
 			
 			var version = this.versionCookie.get();
 				
 			if(version != Mojo.appInfo.version) {
-				this.showAbout = true
-				LBB.Model.getInstance().update(version, Mojo.appInfo.version);
 				this.versionCookie.put(Mojo.appInfo.version);
 				
 				LBB.Util.log("Version cookie set to " + Mojo.appInfo.version);
+				
+				return true;
 			}
 		} catch (e) {
-			LBB.Util.error("AppAssistant.checkVersion", e);
+			LBB.Util.error("AppAssistant.isNewVersion", e);
 		}
+		
+		return false;
 	},
 	onUpgrade:function() {
 		LBB.Util.log("> AppAssistant.onUpgrade");
