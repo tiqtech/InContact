@@ -1,7 +1,14 @@
+.QuickContact {
+	-webkit-transition-property:top, left;
+	-webkit-transition-duration:250ms;
+	-webkit-transition-timing-function:ease-out;
+}
+
 .QuickContact.dragging
 {
 	z-index:10000;
 	opacity:.5;
+	-webkit-transition:none;
 }
 
 .QuickContact .wrapper
@@ -12,20 +19,29 @@
 
 .QuickContact.selected .icon
 {
+	opacity:1;
 	visibility:visible;
 }
 
+.QuickContact .row {
+	display:-webkit-box;
+	-webkit-box-orient:horizontal;
+	-webkit-box-flex:1;
+}
+
 .QuickContact .icon
-{	
+{
+	-webkit-transition:opacity 250ms linear;
+	opacity:0;
 	visibility:hidden;
-	position:relative;
-	display:inline;
-	float:left;
 	-webkit-background-size:100% 100%;
+	-webkit-box-flex:1;
+	margin:2px;
 }
 
 .QuickContact .icon.inactive
 {
+	opacity:0;
 	visibility:hidden;
 }
 
@@ -37,6 +53,10 @@
 	width:100%;
 	background-repeat:no-repeat;
 	background-attachment:fixed;
+	position:relative;
+	
+	display:-webkit-box;
+	-webkit-box-orient:vertical;
 }
 
 .QuickContact.grid .contactName
@@ -50,6 +70,7 @@
 	margin-left:3%;
 	position:absolute;
 	-webkit-border-radius: 4px;
+	
 }
 
 .driving .QuickContact.grid .contactName {
@@ -71,14 +92,6 @@
 .QuickContact.grid.selected .contactName
 {
 	display:none;
-}
-
-.QuickContact.grid .icon
-{
-	position:relative;
-	width:44%;
-	height:44%;
-	margin:3%;
 }
 
 .QuickContact.grid .image

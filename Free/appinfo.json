@@ -1,0 +1,10 @@
+{
+	"id": "com.tiqtech.incontact",
+	"version": "1.6.0",
+	"vendor": "tiqtech.com",
+	"type": "web",
+	"noWindow":"true",
+	"main": "index.html",
+	"title": "InContact",
+	"icon": "icon.png"
+}

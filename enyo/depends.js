@@ -1,0 +1,11 @@
+enyo.depends(
+	"Main.js",
+	"About.js",
+	"BackgroundImage.js",
+	"BackgroundImage.css",
+	"Page.js",
+	"QuickContact.js",
+	"InContact.js",
+	"default.css",
+	"QuickContact.css"
+);

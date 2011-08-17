@@ -269,7 +269,7 @@ var _MainAssistantBase = {
 				
 				var o = this.$.get(id);
 				Mojo.Event.listen(o, Mojo.Event.hold, this.handlers.onEnableDrag);
-				Mojo.Event.listen(o, Mojo.Event.tap, this.handlers.onSelect);
+				Mojo.Event.listen(o, Mojo.Event.tap, Mojo.Function.debounce(undefined, this.handlers.onSelect, 0.25));
 			} else {
 				// if it does exist, just re-render it
 				this.$.get(id).mojo.render();
@@ -518,20 +518,8 @@ var _MainAssistantBase = {
 	onClearSelected:function(event, skipAnimation) {
 		LBB.Util.log("> MainAssistant.onClearSelected");
 		
-		if (this.selected != null) {
-			var transition;
-			
-			if (!skipAnimation) {
-				transition = this.controller.prepareTransition(Mojo.Transition.crossFade);
-			}
-			
-			this.selected.mojo.select(false);
-			this.selected = null;
-			
-			if (!skipAnimation == true) {
-				transition.run();
-			}
-		}
+		this.selected && this.selected.mojo.select(false);
+		this.selected = null;
 	},
 	handleModelChanged:function(contact) {
 		LBB.Util.log("> MainAssistant.handleModelChanged");
@@ -548,13 +536,23 @@ var _MainAssistantBase = {
 		this.handleModelChanged();
 	},
 	onSelect:function(event) {
+		
+		// currentTarget is lost with debouce so finding it myself
+		var t = event.target;
+		while( !t.mojo ) t = t.parentNode;
+		if(!t) return;
+		
 		// not calling onClearSelected to avoid menu churn by removing and adding edit item
 		if(this.selected != null) this.selected.mojo.select(false);
 		
-		this.selected = event.currentTarget;
+		this.selected = t;
 		this.selected.mojo.select(true);
-		
 		this.revealContact(this.selected);
+		
+		if(event.count === 2) {
+			this.selected.mojo.doDefaultAction();
+			return;
+		}
 		
 		event.stopPropagation();
 	},

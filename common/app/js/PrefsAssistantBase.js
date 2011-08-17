@@ -3,18 +3,18 @@ var _PrefsAssistantBase = {
 		this.model = model;
 		this.prefs = null;
 		this.handlers = new HandlerManager(this);
+		
+		this.themes = [
+   			{label:$L("Default"),value:"default"},
+   			{label:$L("Blue Steel"),value:"bluesteel"},
+   			{label:$L("Spring"),value:"spring"},
+   			{label:$L("Fresh"),value:"fresh"},
+   			{label:$L("Goldfish"),value:"goldfish"},
+   			{label:$L("Pretty in Pink"),value:"pink"}
+   		];
 	},
 	setup:function() {
 		LBB.Util.log("> LBB.Preferences.setup");
-		
-		var themes = [
-			{label:$L("Default"),value:"default"},
-			{label:$L("Blue Steel"),value:"bluesteel"},
-			{label:$L("Spring"),value:"spring"},
-			{label:$L("Fresh"),value:"fresh"},
-			{label:$L("Goldfish"),value:"goldfish"},
-			{label:$L("Pretty in Pink"),value:"pink"}
-		];
 		
 		var icons = [
 			{label:$L("Default"),value:"icon"},
@@ -51,7 +51,7 @@ var _PrefsAssistantBase = {
 		
 		// theme
 		//this.controller.get('labelTheme').insert($L("Theme"));
-		this.controller.setupWidget('fieldTheme', {label:$L("Theme"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:themes},this.prefs.getPropertyObject("theme"));
+		this.controller.setupWidget('fieldTheme', {label:$L("Theme"),labelPlacement:Mojo.Widget.labelPlacementLeft,choices:this.themes},this.prefs.getPropertyObject("theme"));
 		Mojo.Event.listen(this.controller.get('fieldTheme'), Mojo.Event.propertyChange, this.handlers.handleThemeChange);
 		
 		// name position

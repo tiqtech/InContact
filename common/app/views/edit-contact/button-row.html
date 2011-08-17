@@ -1,13 +1,11 @@
 <div class="palm-row">
 	<div class="palm-row-wrapper edit-contact-row">
-		<div class="icon-group">
-			<div class="icon" id="edit-contact-icon-#{index}" style="background-image:url(images/#{icon}.png);">
-				<div class="selector"></div>
-			</div>
-			<div class="label" id="edit-contact-label-wrapper-#{index}">
-				<span id="edit-contact-label-#{index}">#{-label}</span>
-				<div class="selector"></div>
-			</div>
+		<div class="favorite" id="edit-contact-favorite-#{index}"></div>
+		<div class="icon" id="edit-contact-icon-#{index}" style="background-image:url(images/#{icon}.png);">
+			<div class="selector"></div>
+		</div>
+		<div class="label" id="edit-contact-label-wrapper-#{index}">
+			<div id="edit-contact-label-#{index}" style="position:relative">#{-label} <div class="selector"></div></div>
 		</div>
 		<div class="contact-details" id="edit-contact-details-wrapper-#{index}">
 			<span id="edit-contact-details-#{index}">#{text}</span>

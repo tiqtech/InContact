@@ -29,7 +29,7 @@ var _QuickContact = {
 		this.loadContactPhoto();
 		this.render();
 		
-		this.controller.exposeMethods(["select", "render"]);
+		this.controller.exposeMethods(["select", "render", "doDefaultAction"]);
 				
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_0"), Mojo.Event.tap, this.handlers.onIconTap, true);
 		Mojo.Event.listen(this.controller.get(this.controller.element.id + "_1"), Mojo.Event.tap, this.handlers.onIconTap, true);
@@ -135,11 +135,25 @@ var _QuickContact = {
 	getIcon:function(index) {
 		return this.controller.get(this.attributes.id+"_"+index);
 	},
+	doDefaultAction:function() {
+		Mojo.Log.info("> doDefaultAction");
+		
+		for(var k in this.controller.model.qc.selections) {
+			var s = this.controller.model.qc.selections[k];
+			if(s.defaultAction === true) {
+				this.onAction(k);
+				return;
+			}
+		}
+	},
 	onIconTap:function(event) {
 		LBB.Util.log("> QuickContact.onIconTap");
 		var c = this.controller.get(event.currentTarget);
 		
 		var index = c.id.substring(c.id.lastIndexOf("_")+1);
+		this.onAction(index, event);
+	},
+	onAction:function(index, event) {
 		var s = this.controller.model.qc.selections[index]
 		var action = s.action;
 		var operations = {"phone":this.handlers.onPhone,"sms":this.handlers.onSMS,"im":this.handlers.onIM,"email":this.handlers.onEmail};
@@ -223,7 +237,7 @@ var _QuickContact = {
 	actionComplete:function(event, action) {
 		var closeAction = LBB.Preferences.getInstance().getProperty("closeAction");
 		
-		event.stopPropagation();
+		event && event.stopPropagation();
 		
 		if(closeAction == "any" || closeAction == action) {
 			this.controller.window.close();

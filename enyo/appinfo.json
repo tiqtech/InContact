@@ -1,0 +1,9 @@
+{
+	"id": "com.palm.helloworld",
+	"version": "1.0.0",
+	"vendor": "Mojo3",
+	"type": "web",
+	"main": "index.html",
+	"title": "Mojo3 HelloWorld",
+	"icon": "icon.png"
+}

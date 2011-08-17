@@ -24,7 +24,13 @@
 		}, {
 			"key":"edit",
 			"title":"Edit a Contact",
-			"body":"To edit a contact:<ol><li>Tap the contact</li><li>Tap the Person icon in the top left</li><li>Tap \"Edit\"</li></ol>For each slot, you can select your preferred icon, action, and number or address by tapping each.  If a number or address does not exist for a particular action, \"None Available\" will be displayed in place of the number or address.",  
+			"body":"To edit a contact:<ol><li>Tap the contact</li><li>Tap the Person icon in the top left</li><li>Tap \"Edit\"</li></ol>For each slot, you can select your preferred icon, action, and number or address by tapping each.  If a number or address does not exist for a particular action, \"None Available\" will be displayed in place of the number or address.",
+			"seeAlso":["defaultAction"],  
+			"version":"com.tiqtech.incontactplus"
+		}, {
+			"key":"defaultAction",
+			"title":"Default Action",
+			"body":"Default actions are great for people with whom you usually contact in the same way (e.g. by phone or SMS).  Each contact can have a default action which is set by selecting the star to the left of the action.  Only one action can be identified as the default.  When a contact has a default action, double tapping the contact will select the contact and execute the default action.",
 			"version":"com.tiqtech.incontactplus"
 		}, {
 			"key":"reorder",
@@ -83,6 +89,12 @@
 			"key":"appTheme",
 			"title":"Theme",
 			"body":"Allows you to select which color theme will be used for InContact."
+		}, {
+			"key":"customTheme",
+			"title":"Custom Theme",
+			"body":"The custom theme option allows you to select a background and accent color instead of one of the predefined themes.  Tap the box to the right of the label to display a color picker.  Once you are satisified with the chosen color, tap outside the picker or use the back gesture to hide the picker.",
+			"seeAlso":["appTheme"],
+			"version":"com.tiqtech.incontactplus"
 		}, {
 			"key":"startMode",
 			"title":"Start Up Mode",

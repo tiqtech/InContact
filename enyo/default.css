@@ -1,0 +1,495 @@
+/** new styles **/
+
+body{
+	background-image:url('themes/bluesteel/bg.png');
+	background-repeat:no-repeat;
+	background-size:
+}
+
+.page {
+	height:100%;
+	margin:3px;
+	-webkit-border-radius:20px;
+	background-color:rgba(255,255,255,0.5);
+}
+
+.header-flex-box {
+	margin-left:-20px;
+	margin-right:-20px
+}
+
+.header-flex-box .title {
+	font-size:smaller;
+	font-weight:bold;
+}
+
+.enyo-floating-header .enyo-button {
+	width: 40px;
+	height: 40px;
+	border-left-width: 20px;
+	border-right-width: 20px;
+	margin-top:-10px;
+}
+
+.enyo-floating-header .enyo-button .enyo-button-icon {
+	background-size: 70% 70%;
+	background-position: center center;
+	height: 40px;
+	width: 40px;
+	margin-left: -20px;
+	margin-top: 0px;
+}
+
+.header-menu {
+	width:100%;
+	z-index:120;
+}
+/** Default Theme CSS **/
+
+body.palm-default {
+	background-image: url("themes/default/bg.png");
+	background-repeat: no-repeat;
+	background-color:rgb(237,240,255);
+}
+
+.palm-row, .palm-row.first, .palm-row.last
+{
+	background-color:rgb(237,240,255);
+}
+
+.content-wrapper {
+	background-color:rgba(255,255,255,.85);
+}
+
+/** General **/
+
+.palm-row.first {
+	-webkit-border-radius: 15px 15px 0px 0px;
+}
+
+.palm-row.last {
+	-webkit-border-radius: 0px 0px 15px 15px ;
+}
+
+.palm-row.single {
+	-webkit-border-radius:15px;
+}
+
+.content-wrapper {
+	-webkit-border-radius:10px;
+	margin:5%;
+	width:85%;
+	padding:10px;
+	font-size:12pt;
+}
+
+
+/** Main Scene **/
+
+.dragging
+{
+	opacity:.5;
+	z-index:10000;
+}
+
+.ContactScroller
+{
+	float:left;
+	-webkit-border-radius:20px;
+	background-color:rgba(255,255,255,.3);
+	margin:3px;
+}
+
+.ContactScroller .scroll-wrapper
+{
+	height:100%;
+	width:100%;
+}
+
+.scroller-padding.bottom
+{
+	position:absolute;
+	left:0px;
+	top:0px;
+	height:50px;
+}
+
+.main-scene .palm-header .button {
+	position:absolute;
+	border:1px solid rgba(10,10,10,.8);
+	background-position:center center;
+	background-repeat:no-repeat;
+	-webkit-border-radius:40px;
+	color:#ffffff;
+	font-size:8pt;
+	top:10px;
+	width:30px;
+	height:30px;
+}
+
+.main-scene .palm-header .button.selected {
+	background-color:rgba(255,255,255,.3);
+}
+
+.main-scene .palm-header .button.right {
+	right:-15px;
+}
+
+.main-scene .palm-header .button.left {
+	left:-15px;
+}
+
+.main-scene .contact-icon {
+	background:url(../images/contact-icon.png);
+	-webkit-background-size:80% 80%;
+}
+
+.main-scene .card-icon {
+	background:url(../images/card-icon.png);
+	-webkit-background-size:60% 60%;
+}
+
+.main-scene .plus-icon {
+	background:transparent url(../images/plus-icon.png) no-repeat;
+	-webkit-background-size:80% 80%;
+}
+
+.main-scene .pageTicks {
+	position:fixed;
+	bottom:50px;
+	width:98%;
+	margin-left:1%;
+	
+}
+
+.main-scene .pageTicks .tickMark {
+	float:right;
+	width:3px;
+	height:12px;
+	margin:3px 3px 3px 4px;
+	-webkit-border-radius:2px;
+	border:1px solid #404040;
+	background-color:#cccccc;
+}
+
+.main-scene .pageTicks .tickMark.active {
+	float:left;
+}
+
+.main-scene .help-bubble {
+	-webkit-border-radius:8px;
+	background-color:rgba(255,255,136,.9);
+	width:50%;
+	top:55px;
+	padding:5px;
+	position:fixed;
+	font-size:smaller;
+}
+
+.main-scene .help-bubble.contact {
+	left:5%;
+}
+
+.main-scene .help-bubble.page {
+	right:5%;
+}
+
+.main-scene #upgrade-scroller {
+	position:absolute;
+	top:3%;
+	left:3%;
+	width:94%;
+	height:94%;
+	background-color:rgba(230,230,230,0.9);
+	-webkit-border-radius:15px;
+}
+
+/** Palm App Icons **/
+
+.phone-icon {
+	background:url(../images/icons/phone.png);
+	-webkit-background-size:100% 100%;
+}
+
+.email-icon {
+	background:url(../images/icons/email.png);
+	-webkit-background-size:100% 100%;
+}
+
+.messaging-icon {
+	background:url(../images/icons/messaging.png);
+	-webkit-background-size:100% 100%;
+}
+
+.contacts-icon {
+	background:url(../images/icons/contacts.png);
+	-webkit-background-size:100% 100%;
+}
+
+.calendar-icon {
+	background:url(../images/icons/calendar.png);
+	-webkit-background-size:100% 100%;
+}
+
+/** Help Scene **/
+
+.help-scene .topic-title {
+	line-height:50px;
+	padding-left:5px;
+	font-size:12pt;
+}
+
+.help-scene .content-wrapper {
+	padding:2px 0px 2px 0px;
+	width:90%;
+}
+
+.help-scene .seeAlso-header {
+	font-weight:bold;
+}
+
+.help-scene .palm-body-text.seeAlso-link {
+	color:#0000ff;
+	text-decoration:underline;
+	margin-bottom:0px;
+}
+
+/** About Scene **/
+
+.about-scene .header IMG {
+	float:left;
+	height:32px;
+	width:32px;
+	margin-right:10px;
+}
+
+.about-scene .header H2 {
+	line-height:32px;
+}
+
+.about-scene .back-icon {
+	background:transparent url(../images/back-icon.png) no-repeat 0px 0px;
+}
+
+.about-scene .back-icon.selected {
+	background:transparent url(../images/back-icon.png) no-repeat 0px 32px;
+}
+
+/** Preferences Scene **/
+
+.prefs-scene .palm-row
+{
+	height:55px;
+}
+
+.prefs-scene .label.left
+{
+	float:left;
+	min-width:130px;
+	line-height:12pt;
+	margin-top:10pt;
+	width:auto;
+	text-overflow:wrap;
+}
+
+.prefs-scene .list .label {
+	min-width:60%;
+	white-space:normal;
+	text-overflow:wrap;
+	line-height:12pt;
+}
+
+.prefs-scene #launcherPreferencesList .palm-row {
+	height:50px;
+}
+
+.prefs-scene #launcherPreferencesList .icon {
+	width:32px;
+	height:32px;
+	margin:9px;
+}
+
+.prefs-scene #launcherPreferencesList .launcher-label {
+	line-height:50px;
+	font-size:12pt;
+}
+
+/** Edit Contact Scene **/
+
+.edit-contact-scene .header
+{
+	clear:both;
+}
+
+.edit-contact-scene #edit_contact_photo
+{
+    -webkit-transform:  rotate(-7deg);
+	float:left;
+	height:50px;
+	width:50px;
+	-webkit-border-radius: 10px;
+	margin:10px;
+}
+
+.edit-contact-scene #edit_contact_name
+{
+	float:left;
+	width:250px;
+	line-height:60px;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+
+.edit-contact-scene .palm-row .label
+{
+	ddwidth:40%;
+	float:left;
+}
+
+.edit-contact-scene .contact-details {
+}	
+
+.edit-contact-scene .contact-method-row
+{
+	font-size:12pt;
+	padding:3px 3px 3px 13px;
+	height:40px;
+	clear:both;
+	line-height:32px;
+	vertical-align:middle;
+}
+
+.edit-contact-scene .contact-method-row .method-details
+{
+	width:auto;
+}
+
+.edit-contact-scene .contact-method-row .label
+{
+	width:auto;
+	margin:auto;
+	float:right;
+	text-align:right;
+}
+
+.edit-contact-scene .edit-contact-drawer
+{
+	clear:both;
+	width:94%;
+	padding:3%;
+}
+
+.edit-contact-scene .actionButton
+{
+	float:left;
+	display:inline;
+	width:33%;
+}
+
+/* setting font size to account for internationalization */ 
+.edit-contact-scene .actionButton .palm-button-wrapper
+{
+	font-size:12pt;
+}
+
+.edit-contact-scene .details-menu-item .label {
+	width:25%;
+	float:right;
+	text-align:right;
+}
+
+.edit-contact-scene .details-menu-item .value {
+	width:65%;
+	padding-left:5px;
+	float:left;
+	line-height:50px;
+}
+
+
+.edit-contact-scene .details-menu-item .label IMG{
+  margin-top:-10px;
+}
+
+/** group scene **/
+
+.group-scene .name-row {
+	padding-right:60px;
+}
+
+.group-scene .group-name {
+	float:left;
+	width:200px;
+}
+
+.group-scene .group-members {
+	clear:both;
+}
+
+.group-scene .group-photo-wrapper {
+	float:right;
+	margin-top:10px;
+	margin-right:-46px;
+	height:50px;
+	width:50px;
+	background:url('../images/details-image-question.png') fixed no-repeat center center;
+	-webkit-border-radius:8px;
+	-webkit-background-size:100% 100%;
+}
+
+.group-scene .group-photo-wrapper .group-photo {
+	position:relative;
+	top:4px;
+	width:50px;
+	height:50px;
+	background:url('../images/details-image-generic.png') fixed no-repeat center center;
+	-webkit-border-radius:8px;
+	-webkit-background-size:100% 100%;
+}
+
+.group-scene .group-photo-wrapper .group-photo .group-photo-frame {
+	position:relative;
+	top:-4px;
+	background:url('../images/details-view-avatar-frame.png') fixed no-repeat center center;
+	-webkit-background-size:100% 100%;
+	width:60px;
+	height:60px;
+	margin:-5px;
+}
+
+.group-scene .palm-row.member-row {
+	height:80px;
+}
+
+.group-scene .contact-name {
+	padding-top:5px;
+	padding-left:5px;
+}
+
+.group-scene .contact-point {
+	font-size:smaller;
+	padding-left:15px;
+}
+
+.group-scene .palm-dialog-content .list-selector {
+	margin:-30px 6px -15px 0px;
+	height:52px;
+}
+
+.group-photo-scene #group-photo-grid, .group-photo-scene #group-photo-message-list {
+	margin-top:50px;
+}
+
+.group-photo-scene .photo-wrapper {
+	float:left;
+	background:url('../images/details-image-question.png') fixed no-repeat center center;
+	-webkit-border-radius:10px;
+	-webkit-background-size:100% 100%;
+	margin:5px;
+}
+
+.group-photo-scene .photo-wrapper .photo {
+	-webkit-border-radius:10px;
+	width:90px;
+	height:90px;
+}

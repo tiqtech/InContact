@@ -1,174 +1,26 @@
-<style>
-	.icon {
-		color:#333333;
-		font-size:14pt;
-		text-align:right;
-		font-weight:bold;
-		float:left;
-		-webkit-border-radius:5px;
-		background-color:rgba(255,255,255,.6);
-		background-size:100%;
-		background-position:top left;
-		background-attachment:fixed;
-	}
-	
-	.link {
-		color:#0000ff;
-		text-decoration:underline;
-	}
-	
-	.edit-contact-scene.incontact .icon-group .selector {
-		visibility:hidden;
-	}
-	
-	#edit-contact-photo .icon {
-		width:42%;
-		margin:3%;
-		height:42%;
-		border:1px solid #333333;
-	}
-	
-	#edit_contact_photo_wrapper {
-		background-size:100% auto;
-		background-origin:top left;
-		float:left;
-		margin:10px 10px 10px -110px;
-		-webkit-border-radius:10px;
-		width:100px;
-		height:100px;
-		background-image:url(images/details-image-generic.png);
-	}
-	
-	#edit-contact-photo {
-		width:100%;
-		height:100%;
-		-webkit-background-size:100% 100%;	
-		-webkit-border-radius:10px;
-	}
-	
-	.edit-contact-name {
-		float:left;
-		color:#333333;
-		background-color:rgba(255,255,255,.6);
-		-webkit-border-radius:10px;
-		padding:5px;
-		width:90%;
-		font-size:16pt;
-		margin-top:30px;
-		height:56px;
-		overflow:hidden;
-	}
-	
-	.edit-contact-row {
-		padding-left:150px;
-		height:50px;
-	}
-	
-	.edit-contact-header {
-		padding-left:120px;
-	}
-	
-	.icon-group {
-		width:85px;
-		float:left;
-		padding-left:50px;
-		padding-right:10px;
-		margin-left:-150px;
-	}
-	
-	.icon-group .icon {
-		width:36px;
-		height:36px;
-		margin:7px;
-		margin-left:-43px;
-	}
-	
-	.icon-group .label {
-		width:100%;
-		float:left;
-	}
-	
-	.contact-details {
-		font-size:12pt;
-		padding-right:12px;
-		
-		float:left;
-		line-height:50px;
-	}
-	
-	.selector {
-		background-image:url(images/list-selector-triangle.png);
-		float:right;
-		width:10px;
-		height:10px;
-		margin-top:20px;
-		margin-left:2px;
-	}
-	
-	.contact-details .selector {
-		margin-right:-12px;
-	}
-	
-	.contact-details SPAN {
-		width:130px;
-		text-align:right;
-		text-overflow:ellipsis;
-		white-space:nowrap;
-		overflow: hidden;
-		float:left;
-	}
-	
-	.selector .hidden {
-		visibility:hidden;
-	}
-	
-	.icon .selector {
-		margin-top:25px;
-	}
-	
-	.label SPAN {
-		float:left;
-	}
-	
-	.label .selector {
-		margin-top:5px;
-		float:left;
-	}
-	
-	.icon-option {
-		width:40px;
-		height:40px;
-		float:left;
-		margin:3px;
-	}
-	
-	.list-item-label {
-		text-align:left;
-		line-height:50px;
-		padding-left:5px;
-	}
-	
-	.dialog {
-		-webkit-border-radius:15px;
-		margin:2%;
-		width:92%;
-		padding:2%;
-		background-color:#ffffff;
-		position:absolute;
-	}
-</style>
-
-<div class="edit-contact-header">
-	<div id="edit_contact_photo_wrapper">
-		<div id="edit-contact-photo">
-			<div class="icon" id="edit-contact-header-icon-0"></div>
-			<div class="icon" id="edit-contact-header-icon-1"></div>			<div class="icon" id="edit-contact-header-icon-2"></div>			<div class="icon" id="edit-contact-header-icon-3"></div>
-		</div>
+<div class="palm-page-header">
+	<div class="palm-page-header-wrapper">
+		<div class="icon"></div>
+		<div class="title" id="edit-contact-title"></div>
 	</div>
-	<div class="edit-contact-name" id="edit-contact-name"></div>
 </div>
 
-<div class="palm-group" style="clear:both;">
+<div class="contact-header">
+	<div class="palm-group unlabeled group-name">
+		<div class="palm-list">
+			<div class="palm-row single">
+				<div class="palm-row-wrapper truncating-text" id="edit-contact-name"></div>
+			</div>
+		</div>
+	</div>
+	<div class="photo-wrapper">
+		<div class="photo" id="edit-contact-photo">
+			<div class="photo-frame"></div>
+		</div>
+	</div>
+</div>
+
+<div class="palm-group contact-point-config" style="clear:both">
 	<div class="palm-group-title">Tap to change</div>
 	<div class="palm-list" id="contactPointList" x-mojo-element="List"></div>
 </div>

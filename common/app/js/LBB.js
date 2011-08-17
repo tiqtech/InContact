@@ -99,14 +99,21 @@ LBB.Util =
 		var prefs = LBB.Preferences.getInstance();
 		var theme = prefs.getProperty("theme");
 
-		new Ajax.Request(Mojo.appPath + "/themes/" + theme + "/config.json", {
-			method:"get",
-			onSuccess:function(xhr) { 
-				var c = controller;
-				var t = theme;
-				this.onLoadTheme(xhr, c, t);
-			}.bind(this)
-		});
+		if(theme === "custom") {
+			var t = prefs.getProperty("customTheme");
+			t.theme = "custom";
+			
+			this.renderTheme(controller, t);
+		} else {
+			new Ajax.Request(Mojo.appPath + "/themes/" + theme + "/config.json", {
+				method:"get",
+				onSuccess:function(xhr) { 
+					var c = controller;
+					var t = theme;
+					this.onLoadTheme(xhr, c, t);
+				}.bind(this)
+			});	
+		}
 	},
 	onLoadTheme:function(xhr, controller, theme) {
 		if(xhr.status == 200) {
@@ -114,19 +121,42 @@ LBB.Util =
 				var attr = eval("("+xhr.responseText+")");
 				if(typeof(attr) == "object") {
 					attr.theme = theme;
-					var content = Mojo.View.render({"template":"themes/style", attributes:attr});
-					var themeNode = controller.get('theme-style');
-					
-					if(themeNode == null) {
-						controller.get(controller.document.body).insert(content);
-					} else {
-						themeNode.replace(content);
-					}
+					this.renderTheme(controller, attr)
 				}
 			} catch (ex) {
 				Mojo.Log.error(ex);
 			}
 		}
+	},
+	renderTheme:function(controller, theme) {
+		var content = Mojo.View.render({"template":"themes/style", attributes:theme});
+		var themeNode = controller.get('theme-style');
+		
+		if(themeNode == null) {
+			controller.get(controller.document.body).insert(content);
+		} else {
+			themeNode.replace(content);
+		}
+	},
+	newTheme:function() {
+		return {
+			"list":
+			{
+				"bgcolor":"#FFF"
+			},
+			"contact":
+			{
+				"bordercolor":"#FFF"
+			},
+			"body":
+			{
+				"bgcolor":"#fff",
+				"bgimage":""
+			},
+			"commandmenu":{
+				"bgImage":"cmdmenubg.png"
+			}
+		};
 	},
 	updateAppIcon:function() {
 		var icon = LBB.Preferences.getInstance().getProperty("icon");

@@ -46,6 +46,7 @@ var _EditContactAssistantBase = {
 		
 		// add incontact or incontactplus as a class name in order to hide selectors for free version
 		this.controller.get('mojo-scene-edit-contact').addClassName(Mojo.appInfo.id.substring(Mojo.appInfo.id.lastIndexOf(".")+1));
+		this.controller.get('edit-contact-title').update($L("Edit Contact"));
 
 		var s = this.model.qc.selections;
 		this.buttonModel = [s['0'],s['1'],s['2'],s['3']];
@@ -87,9 +88,7 @@ var _EditContactAssistantBase = {
 				items:this.buttonModel
 			}
 		);
-		
-		this.updateIcons();
-		
+				
 		this.controller.get('edit-contact-name').update(Mojo.Widget.QuickContact.formatContactName(null, this.model));
 		this.controller.get('edit-contact-photo').style.backgroundImage = "url(" + this.model.qc.largePhoto + ")";
 		
@@ -130,15 +129,6 @@ var _EditContactAssistantBase = {
 	},
 	safeString:function(s) {
 		return (s) ? s : "";
-	},
-	updateIcons:function() {
-		for(var i=0;i<this.buttonModel.length;i++) {
-			var item = this.buttonModel[i];
-			item.index = i;
-			
-			var bg = {"backgroundImage":"url(images/"+item.icon+".png)"};
-			this.controller.get("edit-contact-header-icon-"+i).setStyle(bg);
-		}
 	},
 	resolveNode:function(event) {
 		var list = this.controller.get('contactPointList');
@@ -209,12 +199,27 @@ var _EditContactAssistantBase = {
 	},
 	onItemRendered:function(listWidget, itemModel, itemNode) {
 		var i = itemModel.index;
+		this.renderFavorite(i);
 		this.controller.listen(this.controller.get("edit-contact-details-wrapper-"+i), Mojo.Event.tap, this.handlers.onDetailsTap);
+		this.controller.listen(this.controller.get("edit-contact-favorite-"+i), Mojo.Event.tap, this.handlers.onSetFavorite);
+	},
+	onSetFavorite:function(event) {
+		var index = parseInt(event.currentTarget.id.substring(event.currentTarget.id.length-1));
+		for(var i=0;i<4;i++) {
+			if(this.model.qc.selections[i].defaultAction && i === index) {
+				this.model.qc.selections[i].defaultAction = false;
+			} else {
+				this.model.qc.selections[i].defaultAction = (i === index);
+			}
+			
+			this.renderFavorite(i);
+		}
+	},
+	renderFavorite:function(i) {
+		this.controller.get("edit-contact-favorite-"+i).style.backgroundPosition = (this.model.qc.selections[i].defaultAction === true) ? "0px -32px" : "0px 0px";
 	},
 	onModelChanged:function() {
 		LBB.Util.log("> EditContactAssistant.onModelChanged");
-		
-		this.updateIcons();
 		
 		for(var i=0;i<this.buttonModel.length;i++) {
 			this.model.qc.selections[i.toString()] = {
