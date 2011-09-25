@@ -3,100 +3,31 @@ var _InContact = {
 	kind:"Control",
 	layoutKind:"VFlexLayout",
 	components: [
-		{name:"header", kind: "FloatingHeader", className:"enyo-button enyo-menu-button-shape",style:"z-index:125", components: [
-			{kind: "HFlexBox", className:"header-flex-box", components:[
-				{kind: "MenuButton", icon:"images/contact-icon.png", className:"left", onclick:"showContactMenu"},
-				{name: "pageTitle", content: "InContact", className:"title", flex:1},
-				{kind: "MenuButton", icon:"images/card-icon.png",className:"right",onclick:"showPageMenu"}
-			]} 
+		{name:"header", kind: "Toolbar", pack:"start", components: [
+			{kind:"Button", caption:"Friends", onclick:"tabClicked", index:0, className:"enyo-button-blue"},
+			{kind:"Button", caption:"Family", onclick:"tabClicked", index:1},
+			{kind:"Button", caption:"Work", onclick:"tabClicked", index:2},
+			{kind:"Button", caption:"+", style:"font-size:larger;font-weight:bold", className:"enyo-button-affirmative"},
 		]},
-		{name:"scroller",kind:"SnapScroller",vertical:false,autoVertical:false,flex:1,onSnapFinish:"onChangePage"},
-		{name:"commandMenu", kind:"CommandMenu", components:[
-			{kind:"MenuToolbar", components:[
-				{icon:"images/icons/phone.png"},
-				{icon:"images/icons/contacts.png"},
-				{icon:"images/icons/messaging.png"},
-				{icon:"images/icons/email.png"},
-				{icon:"images/icons/calendar.png"},
-			]}
-		]},
-		{name:"contactMenu",kind:"PopupMenu",scrim:true,className:"header-menu",components:[
+		{name:"scroller",kind:"SnapScroller",vertical:false,autoVertical:false,flex:1,onSnapFinish:"pageChanged"},		
+		{name:"contactMenu",kind:"Popup",scrim:true,className:"header-menu",components:[
 			{caption:"Add Contact",onclick:"onAddContact"},
 			{caption:"Add Group", onclick:"onAddGroup"},
 			{caption:"Edit Contact", onclick:"onEditContact"},
 			{caption:"Remove Contact", onclick:"onRemoveContact"},
 		]},
-		{name:"pageMenu",kind:"PopupMenu",scrim:true,className:"header-menu",components:[
+		{name:"pageMenu",kind:"Popup",scrim:true,className:"header-menu",components:[
 			{caption:"Add Page", onclick:"onAddPage"},
 			{caption:"Rename Page", onclick:"onRenamePage"},
 			{caption:"Remove Page", onclick:"onRemovePage"},
-		]}
+		]},
+		{name:"contacts", kind:"InContact.Contacts"}
 	],
 	published:{
 
 	},
 	create:function() {
 		this.inherited(arguments);
-	},
-	initComponents:function() {
-		this.inherited(arguments);
-		
-		var contacts = [
-			{
-				id:"123",
-				firstName:"Joe",
-				lastName:"User",
-				phoneNumbers:[
-					{id:"p1",value:"2223334444",label:0},
-					{id:"p2",value:"3334445555",label:1}
-				],
-				emailAddresses:[
-					{id:"e1",value:"abc@def.com"},
-					{id:"e2",value:"def@ghi.com"}
-				],
-				imNames:[
-					{id:"i1",value:"joeuser",serviceName:"gtalk"},
-					{id:"i2",value:"joe_user",serviceName:"yahoo"}
-				],
-				qc:{
-					largePhoto:"",
-					smallPhoto:"",
-					selections:[
-						{action:"phone",details:"p1",icon:"phone"},
-						{action:"sms",details:undefined,icon:"txt"},
-						{action:"email",details:"e1",icon:"email"},
-						{action:"im",details:"i1",icon:"im"}
-					]
-				}
-			},
-			{
-				id:"456",
-				firstName:"Jane",
-				lastName:"User",
-				phoneNumbers:[
-					{id:"p1",value:"2223334444",label:0},
-					{id:"p2",value:"3334445555",label:1}
-				],
-				emailAddresses:[
-					{id:"e1",value:"abc@def.com"},
-					{id:"e2",value:"def@ghi.com"}
-				],
-				imNames:[
-					{id:"i1",value:"janeuser",serviceName:"gtalk"},
-					{id:"i2",value:"jane_user",serviceName:"yahoo"}
-				],
-				qc:{
-					largePhoto:"images/contact-icon.png",
-					smallPhoto:"",
-					selections:[
-						{action:"phone",details:"p2",icon:"phone"},
-						{action:"sms",details:"p2",icon:"sms2"},
-						{action:"email",details:"e2",icon:"factory"},
-						{action:"im",details:"i2",icon:"briefcase"}
-					]
-				}
-			}
-		];
 		
 		var kinds = [];
 		for(var i=0;i<3;i++) {
@@ -105,14 +36,13 @@ var _InContact = {
 		
 		this.$.scroller.createComponents(kinds, {
 			kind:"InContactPage",
-			height:document.body.offsetHeight,
-			width:document.body.offsetWidth,
 			owner:this
 		});
-
-		this.$.page0.setContacts(contacts);
 		
-		this.onChangePage(this.$.scroller)
+		this.$.page0.setContacts(page0);
+	},
+	rendered:function() {
+		this.resized();
 	},
 	showContactMenu:function() {
 		// TODO: fix menu item layout
@@ -121,15 +51,14 @@ var _InContact = {
 	showPageMenu:function() {
 		this.$.pageMenu.openNearNode(this.$.header, {t:25,l:0});
 	},
-	onChangePage:function(sender) {
-		var names = ["Friends","Family","Work"];
-		this.$.pageTitle.setContent(names[sender.index]);
+	pageChanged:function(sender) {
+		this.selectTab(sender.index)
 	},
 	onAddContact:function() {
 		this.log("enter")
 	},
 	onAddGroup:function() {
-		this.log("enter")
+		this.log("enter")	
 	},
 	onEditContact:function() {
 		this.log("enter")
@@ -145,7 +74,78 @@ var _InContact = {
 	},
 	onRemovePage:function() {
 		this.log("enter")
+	},
+	resizeHandler:function() {
+		var n = this.$.scroller.hasNode();
+		if(!n) return;
+		
+		var dim = {w:n.offsetWidth,h:n.offsetHeight};
+		
+		enyo.forEach(this.$.scroller.getControls(), function(item) {
+			item.applyStyle("height", dim.h-12+"px");
+			item.applyStyle("width", dim.w-12+"px");
+		}, this);
+		
+		this.inherited(arguments);
+	},
+	tabClicked:function(source) {
+		this.$.scroller.snapTo(source.index);
+		this.selectTab(source.index);
+	},
+	selectTab:function(index) {
+		for(var i=0,controls=this.$.header.getControls(),c;c = controls[i];i++) {
+			if(c.getCaption() === "+") continue;
+			
+			c.addRemoveClass("enyo-button-blue", i===index);
+		}
 	}
 }
 
 enyo.kind(_InContact);
+
+var page0 = [
+{
+	id:"123",
+	largePhoto:"",
+	smallPhoto:"",
+	selections:[
+		{action:"phone",details:"p1",icon:"phone"},
+		{action:"sms",details:undefined,icon:"txt"},
+		{action:"email",details:"e1",icon:"email"},
+		{action:"im",details:"i1",icon:"im"}
+	]
+},
+{
+	id:"456",
+	largePhoto:"images/contact-icon.png",
+	smallPhoto:"",
+	selections:[
+		{action:"phone",details:"p2",icon:"phone"},
+		{action:"sms",details:"p2",icon:"sms2"},
+		{action:"email",details:"e2",icon:"factory"},
+		{action:"im",details:"i2",icon:"briefcase"}
+	]
+},
+{
+	id:"789",
+	largePhoto:"images/contact-icon.png",
+	smallPhoto:"",
+	selections:[
+		{action:"phone",details:"p2",icon:"phone"},
+		{action:"sms",details:"p2",icon:"sms2"},
+		{action:"email",details:"e2",icon:"factory"},
+		{action:"im",details:"i2",icon:"briefcase"}
+	]
+},
+{
+	id:"101112",
+	largePhoto:"images/contact-icon.png",
+	smallPhoto:"",
+	selections:[
+		{action:"phone",details:"p2",icon:"phone"},
+		{action:"sms",details:"p2",icon:"sms2"},
+		{action:"email",details:"e2",icon:"factory"},
+		{action:"im",details:"i2",icon:"briefcase"}
+	]
+}
+             ]

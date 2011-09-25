@@ -1,6 +1,7 @@
-.QuickContact.grid {
+.QuickContact {
 	position:absolute;
-	-webkit-border-radius:15px;
+	-webkit-border-radius:10%;
+	overflow:hidden;
 }
 
 .QuickContact.dragging
@@ -13,40 +14,35 @@
 {
 	width:100%;
 	height:100%;
-}
-
-.QuickContact.selected .icon
-{
-	visibility:visible;
+	-webkit-border-radius:10%
 }
 
 .QuickContact .icon
 {
-	visibility:hidden;
-	position:relative;
-	display:inline;
-	float:left;
-	-webkit-background-size:100% 100%;
+	display:none;
+	height:24%;
+	margin-top:1%;
+	-webkit-background-size:auto 100%;
+	background-position:5% 0%;
+	background-repeat:no-repeat;
+	padding-left:30%;
+	
+	overflow:hidden;
+	text-overflow:ellipsis;
+	white-space:nowrap;
+}
+
+.QuickContact.selected .icon
+{
+	display:block;
 }
 
 .QuickContact .icon.inactive
 {
-	visibility:hidden;
+	display:none;
 }
 
-.QuickContact.grid .asdfasdfwrapper
-{
-	-webkit-border-radius: 10px;
-	background-size:100% 100%;
-	background-origin:top left;	
-	height:100%;
-	width:100%;
-	background-repeat:no-repeat;
-	background-attachment:fixed;
-	background-position:center center;
-}
-
-.QuickContact.grid .contactName
+.QuickContact .contactName
 {
 	color:#ffffff;
 	clear:both;
@@ -59,100 +55,18 @@
 	-webkit-border-radius: 4px;
 }
 
-.driving .QuickContact.grid .contactName {
-	font-size:14pt;
-}
-
-.contact-name-top .QuickContact.grid .contactName {
+.contact-name-top .QuickContact .contactName {
 	top:4%;
 }
 
-.contact-name-bottom .QuickContact.grid .contactName {
+.contact-name-bottom .QuickContact .contactName {
 	bottom:4%;
 }
 
-.contact-name-none .QuickContact.grid .contactName{
+.contact-name-none .QuickContact .contactName{
 	display:none;
 }
 
-.QuickContact.grid.selected .contactName
-{
+.QuickContact.selected .contactName {
 	display:none;
-}
-
-.QuickContact.grid .icon
-{
-	position:relative;
-	width:44%;
-	height:44%;
-	margin:3%;
-}
-
-.QuickContact.grid .image
-{
-	visibility:hidden;
-	position:absolute;
-	z-index:-10000;
-}
-
-.QuickContact.list
-{
-	height:40px;
-	width:100%;
-}
-
-.QuickContact.list .wrapper
-{
-	margin:4px;
-}
-
-.QuickContact.list.selected .icon
-{
-	display:inline;
-}
-
-.QuickContact.list .icon
-{
-	display:none;
-	height:40px;
-	width:40px;
-	margin-left:4px;
-}
-
-.QuickContact.list .photo
-{
-	display:inline;
-	float:right;
-	height:36px;
-	width:36px;
-	margin-right:8px;
-}
-
-.QuickContact.list .photo IMG
-{
-	-webkit-border-radius: 4px;
-	float:right;
-	height:100%;
-	width:100%;
-}
-
-.QuickContact.list .contactName
-{
-	font-size:14pt;
-	line-height:40px;
-	color:#000;
-	overflow:hidden;
-	text-overflow:ellipsis;
-	white-space:nowrap;
-}
-
-.QuickContact.list.selected .contactName
-{
-	display:none;
-}
-
-.QuickContact.list .icon
-{
-	width:36;
-	height:36;
 }

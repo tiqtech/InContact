@@ -1,49 +1,31 @@
 /** new styles **/
 
 body{
-	background-image:url('themes/bluesteel/bg.png');
-	background-repeat:no-repeat;
-	background-size:
+	background:rgb(114,111,128) url('themes/bluesteel/bg.png') center center no-repeat;
 }
 
 .page {
+	position:relative;
 	height:100%;
-	margin:3px;
+	margin:6px;
 	-webkit-border-radius:20px;
 	background-color:rgba(255,255,255,0.5);
 }
 
-.header-flex-box {
-	margin-left:-20px;
-	margin-right:-20px
+.extras-grid {
+	position:relative
 }
 
-.header-flex-box .title {
-	font-size:smaller;
-	font-weight:bold;
+.extras-grid > * {
+	position:absolute;
+	-webkit-transition:all 250ms ease-out;
 }
 
-.enyo-floating-header .enyo-button {
-	width: 40px;
-	height: 40px;
-	border-left-width: 20px;
-	border-right-width: 20px;
-	margin-top:-10px;
+.extras-grid > .dragging {
+	opacity:0.5;
+	-webkit-transition:none;
 }
 
-.enyo-floating-header .enyo-button .enyo-button-icon {
-	background-size: 70% 70%;
-	background-position: center center;
-	height: 40px;
-	width: 40px;
-	margin-left: -20px;
-	margin-top: 0px;
-}
-
-.header-menu {
-	width:100%;
-	z-index:120;
-}
 /** Default Theme CSS **/
 
 body.palm-default {

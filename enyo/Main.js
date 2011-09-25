@@ -9,6 +9,11 @@ var __Main = {
 			{caption:"About", onclick:"onAbout"}
 		]}
 	],
+	create:function() {
+		this.inherited(arguments);
+		
+		this.broadcastMessage("resize");
+	},
 	onAbout:function() {
 		this.selectView(this.$.about)
 	},

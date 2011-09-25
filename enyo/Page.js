@@ -3,9 +3,13 @@ var _Page = {
 	kind:"Scroller",
 	autoHorizontal: false,
 	horizontal: false,
-	onclick: "clearSelection",
+	style:"overflow:hidden",
 	className:"page",
 	components:[
+	    {kind:"BasicScroller", name:"scroller", onclick:"pageClicked", components:[
+            {kind:"InContact.ReorderableGrid", name:"grid", cellHeight:150, cellWidth:150, margin:10, onReorder:"contactsReordered"}
+        ]},
+        {name:"contacts", kind:"InContact.Contacts"}
 	],
 	published:{
 		contacts:[],
@@ -16,12 +20,10 @@ var _Page = {
 	create:function() {
 		this.inherited(arguments);
 		
-		this.applyStyle("height", (document.body.offsetHeight-6)+"px")
-		this.applyStyle("overflow", "hidden")
-		
 		this.contactsChanged();
-		this.heightChanged();
-		this.widthChanged();
+	},
+	pageClicked:function() {
+		this.clearSelection()
 	},
 	contactsChanged:function(oldContacts) {
 		if(!this.contacts || this.contacts.length === 0) return;
@@ -29,91 +31,24 @@ var _Page = {
 		var kinds = [];
 		for(var i=0;i<this.contacts.length;i++) {
 			var name = "qc"+this.contacts[i].id
-			if (!this.$[name]) {
-				kinds.push({name: name});
-			}
+			var c = this.mergeContact(this.contacts[i]);
+			if(!c) continue;
+			
+			kinds.push({kind:"QuickContact",onclick:"contactClicked",owner:this, name: name, contact:c});
 		}
 		
-		this.createComponents(kinds, {kind:"QuickContact",onclick:"onTapContact",owner:this,onmousehold:"onDragContact"});
-		
-		for(var i=0;i<kinds.length;i++) {
-			var c = this.contacts[i];
-			this.$[kinds[i].name].setContact(c);
-		}
-		
-		this.layoutContacts();
-		
-		var dim = this.getLayoutDimensions();
-		this.setHeight((Math.ceil(this.contacts.length/dim.perRow)*dim.size)+dim.offsetTop);
+		this.$.grid.createComponents(kinds);		
 	},
-	layoutContacts:function() {
-		var dim = this.getLayoutDimensions();
-		
-		var size = dim.size - (dim.padding*2);
-		
-		for(var i=0;i<this.contacts.length;i++) {
-			var qc = this.$["qc"+this.contacts[i].id];
-			
-			var top = dim.padding + (Math.floor(i/dim.perRow)*dim.size) + dim.offsetTop;
-		    var left = dim.padding + ((i%dim.perRow)*dim.size) + dim.offsetLeft;
-		    
-			qc.setTop(top);
-			qc.setLeft(left);
-			qc.setSize(size);
-		}
-	},
-	getLayoutDimensions:function(forceRefresh) {
-		if(forceRefresh || !this.layoutDimensions) {
-			// handles driving/normal modes
-			//var aa = Mojo.Controller.getAppController().assistant;
-			var minWidth = 90;
-			
-			var perRow = 0;
-			var margin = 6;
-			var width;
-			
-			var scrollerWidth = window.innerWidth - margin;
-			
-			// find appropriate size
-			do {
-				width = Math.floor(scrollerWidth/++perRow);
-			} while(width > minWidth);
-			
-			// backup one step because loop goes 1 too far before exiting
-			width = Math.floor(scrollerWidth/--perRow);
-			
-			this.layoutDimensions = {
-				offsetTop:50,
-				offsetLeft:0,
-				perRow:perRow,
-				size:width,
-				padding:5
-			};
-		}
-		
-		return this.layoutDimensions;
+	mergeContact:function(c) {
+		var contact = this.$.contacts.get(c.id);
+		return enyo.mixin({qc:c}, contact);
 	},
 	clearSelection:function(sender) {
-		this.log("enter");
-		this.setSelected(false);
+		this.getSelectedContact().setSelected(false);
 	},
-	onTapContact:function(sender) {
+	contactClicked:function(sender, event) {
 		this.setSelectedContact(sender);
-	},
-	setHeight:function(newHeight) {
-		var h = this.height;
-		this.height = (newHeight < document.body.offsetHeight) ? document.body.offsetHeight : newHeight;
-		this.heightChanged(h);
-	},
-	heightChanged:function(oldHeight) {
-		if(oldHeight === this.height) return;
-		
-		//this.applyStyle("height", this.height-6 + "px");
-	},
-	widthChanged:function(oldWidth) {
-		if(oldWidth === this.width) return;
-		
-		this.applyStyle("width", this.width-6 + "px");
+		event.stopPropagation();
 	},
 	selectedContactChanged:function(oldContact) {
 		if(oldContact) {
@@ -135,6 +70,37 @@ var _Page = {
 		this.log("dragging",sender);
 		
 		event.handled = true;
+	},
+	contactsReordered:function(source, fromIndex, toIndex) {
+		var c = this.contacts.splice(fromIndex, 1)[0];
+		this.contacts.splice(toIndex, 0, c);
+
+		// TODO save reordering
+	},
+	resizeHandler:function() {
+		this.inherited(arguments);
+		
+		var dim = enyo.fetchControlSize(this);
+		
+		// calculate grid/QC size
+		var o = enyo.getWindowOrientation();
+		var rowCount = (o === "left" || o === "right") ? 4 : 6;
+		var size = dim.w/rowCount;
+		
+		// resize scroller
+		this.$.scroller.applyStyle("height", dim.h + "px");
+		this.$.scroller.applyStyle("width", dim.w + "px");
+		
+		// resize contact components
+		var qcSize = size-10 + "px";
+		enyo.forEach(this.$.grid.getControls(), function(item) {
+			item.applyStyle("height", qcSize);
+			item.applyStyle("width", qcSize);
+		}, this);
+		
+		// update grid size
+		this.$.grid.setCellWidth(size);
+		this.$.grid.setCellHeight(size);
 	}
 }
 

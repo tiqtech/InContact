@@ -10,10 +10,10 @@ var _QuickContact = {
 			defaultImage:"images/details-image-generic.png",
 			components: [
 				{className:"contactName",name:"contactName",content:"My NAME"},
-				{name:"icon0", kind:"QuickContactIcon", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
-				{name:"icon1", kind:"QuickContactIcon", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
-				{name:"icon2", kind:"QuickContactIcon", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
-				{name:"icon3", kind:"QuickContactIcon", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
+				{name:"icon0", kind:"QuickContactIcon", className:"top left", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
+				{name:"icon1", kind:"QuickContactIcon", className:"top right", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
+				{name:"icon2", kind:"QuickContactIcon", className:"bottom left", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
+				{name:"icon3", kind:"QuickContactIcon", className:"bottom right", onPhone:"onPhone", onEmail:"onEmail",onSMS:"onSMS",onIM:"onIM"},
 			]
 		},
 		{name:"util", kind:"QuickContactUtil"},
@@ -28,10 +28,6 @@ var _QuickContact = {
 	],
 	published:{
 		contact:{},
-		top:0,
-		left:0,
-		size:100,
-		container:"grid",
 		selected:false,
 	},
 	create:function() {
@@ -39,16 +35,9 @@ var _QuickContact = {
 		
 		this.selectedChanged();
 		this.contactChanged();
-		this.sizeChanged();
-		this.topChanged();
-		this.leftChanged();
 	},
 	selectedChanged:function(wasSelected) {
-		if(this.selected) {
-			this.setClassName(this.container + " QuickContact selected");
-		} else {
-			this.setClassName(this.container + " QuickContact");
-		}
+		this.addRemoveClass("selected", this.selected)
 	},
 	contactChanged:function(oldContact) {
 		if(!this.contact || !this.contact.qc) return;
@@ -62,16 +51,6 @@ var _QuickContact = {
 		for(var i=0;i<4;i++) {
 			this.$["icon"+i].setModel(this.contact.qc.selections[i]);
 		}
-	},
-	sizeChanged:function(oldSize) {
-		this.applyStyle("height", this.size+"px");
-		this.applyStyle("width", this.size+"px");
-	},
-	topChanged:function(oldTop) {
-		this.applyStyle("top", this.top+"px");
-	},
-	leftChanged:function(oldLeft) {
-		this.applyStyle("left", this.left+"px");
 	},
 	onLaunchSuccess:function() {
 		this.log("ok!");
@@ -103,6 +82,7 @@ var _QuickContact = {
 var _QuickContactIcon = {
 	name:"QuickContactIcon",
 	kind:"Control",
+	layoutKind:"HFlexLayout",
 	className:"icon",
 	published:{
 		model:{},
@@ -114,16 +94,16 @@ var _QuickContactIcon = {
 		onIM:""
 	},
 	modelChanged:function(oldModel) {
-		var classes = ["icon"];
-		
 		if(!this.model || !this.model.details || this.model.details === "NONE") {
-			classes.push("inactive")
+			this.addClass("inactive");
+			this.removeClass("active");
 		} else {
-			this.setStyle("background:url(images/" + this.model.icon +".png)");
-			classes.push("active");
+			this.setStyle("background-image:url(images/" + this.model.icon +".png)");
+			this.addClass("active");
+			this.removeClass("inactive");
 		}
 		
-		this.setClassName(classes.join(" "));
+		this.setContent(this.model.details);
 	},
 	clickHandler:function(sender, event) {
 		this.log("clicked",this.model.action,this.model.details);
