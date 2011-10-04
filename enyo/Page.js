@@ -12,7 +12,7 @@ var _Page = {
         {name:"contacts", kind:"InContact.Contacts"}
 	],
 	published:{
-		contacts:[],
+		page:-1,
 		selectedContact:null,
 		height:0,
 		width:0
@@ -20,13 +20,15 @@ var _Page = {
 	create:function() {
 		this.inherited(arguments);
 		
-		this.contactsChanged();
+		this.pageChanged();
 	},
 	pageClicked:function() {
 		this.clearSelection()
 	},
-	contactsChanged:function(oldContacts) {
-		if(!this.contacts || this.contacts.length === 0) return;
+	pageChanged:function() {
+		this.contacts = this.page.contacts;
+		
+		if(!this.contacts) return;
 		
 		var kinds = [];
 		for(var i=0;i<this.contacts.length;i++) {
@@ -75,7 +77,7 @@ var _Page = {
 		var c = this.contacts.splice(fromIndex, 1)[0];
 		this.contacts.splice(toIndex, 0, c);
 
-		// TODO save reordering
+		this.$.contacts.updatePage(this.page, this.contacts);
 	},
 	resizeHandler:function() {
 		this.inherited(arguments);

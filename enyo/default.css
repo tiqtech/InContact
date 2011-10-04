@@ -10,6 +10,20 @@ body{
 	margin:6px;
 	-webkit-border-radius:20px;
 	background-color:rgba(255,255,255,0.5);
+	overflow:visible;
+}
+
+.page-tab {
+	text-transform:capitalize;
+	padding:0px 10px;
+	color:#eee;
+	border-right:1px solid rgba(128, 128, 128, 0.75);
+	height:100%;
+}
+
+.page-tab.selected {
+	font-weight:bold;
+	background-color:rgba(80,80,200,0.75);
 }
 
 .extras-grid {
@@ -474,4 +488,18 @@ body.palm-default {
 	-webkit-border-radius:10px;
 	width:90px;
 	height:90px;
+}
+
+.vtoolbar .enyo-tool-button {
+	padding:10px 10px;
+}
+
+.vtoolbar .enyo-tool-button .enyo-button-icon-text {
+	margin:0px -10px;
+	line-height:0.75em;
+}
+
+.vtoolbar .enyo-tool-button-client {
+	margin:-8px;
+	font-size:8pt;
 }

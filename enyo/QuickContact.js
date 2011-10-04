@@ -49,7 +49,8 @@ var _QuickContact = {
 		this.$.photo.setImage(this.contact.qc.largePhoto);
 		
 		for(var i=0;i<4;i++) {
-			this.$["icon"+i].setModel(this.contact.qc.selections[i]);
+			this.$["icon"+i].setModel(this.contact);
+			this.$["icon"+i].setIndex(i);
 		}
 	},
 	onLaunchSuccess:function() {
@@ -82,10 +83,10 @@ var _QuickContact = {
 var _QuickContactIcon = {
 	name:"QuickContactIcon",
 	kind:"Control",
-	layoutKind:"HFlexLayout",
 	className:"icon",
 	published:{
-		model:{},
+		model:null,
+		index:-1
 	},
 	events:{
 		onPhone:"",
@@ -93,21 +94,43 @@ var _QuickContactIcon = {
 		onSMS:"",
 		onIM:""
 	},
-	modelChanged:function(oldModel) {
-		if(!this.model || !this.model.details || this.model.details === "NONE") {
+	components:[
+		{name:"util", kind:"QuickContactUtil"}
+	],
+	create:function() {
+		this.inherited(arguments);
+		this.contactUpdated();
+	},
+	contactUpdated:function() {
+		if(!this.model || this.index === -1) return;
+		
+		var m = this.model.qc.selections[this.index];
+		
+		if(!m.details || m.details === "NONE") {
 			this.addClass("inactive");
 			this.removeClass("active");
 		} else {
-			this.setStyle("background-image:url(images/" + this.model.icon +".png)");
+			this.setStyle("background-image:url(images/" + m.icon +".png)");
 			this.addClass("active");
 			this.removeClass("inactive");
 		}
 		
-		this.setContent(this.model.details);
+		this.$.util.setContact(this.model);
+		var pref = this.$.util.getPreference(this.index);
+		
+		if(pref) {
+			this.setContent(pref.value);
+		} else {
+			this.hide();
+		}
+	},
+	indexChanged:function() {
+		this.contactUpdated();
+	},
+	modelChanged:function(oldModel) {
+		this.contactUpdated();
 	},
 	clickHandler:function(sender, event) {
-		this.log("clicked",this.model.action,this.model.details);
-		
 		// dispatch action
 		switch(this.model.action) {
 			case "phone":
@@ -179,7 +202,7 @@ var _QuickContactUtil = {
 		var pref = c.qc.selections[key].details;
 	
 		// if it's Auto or None, return that 
-		if(pref != SelectAuto && pref != SelectNone && contact[map[type]]) {
+		if(pref != SelectAuto && pref != SelectNone && c[map[type]]) {
 			// try to match contactpoint.id with preference 
 			for(var i=0;i<c[map[type]].length;i++) {
 				var item = c[map[type]][i];
@@ -193,7 +216,7 @@ var _QuickContactUtil = {
 			pref = SelectAuto;
 		}
 		
-		return pref;
+		return undefined;
 	},
 	getPointById:function(id, action) {
 		var list = this.contact[this.ActionMap[action].list];

@@ -4,34 +4,44 @@ var _InContact = {
 	layoutKind:"VFlexLayout",
 	components: [
 		{name:"header", kind: "Toolbar", pack:"start", components: [
-			{kind:"Button", caption:"Friends", onclick:"tabClicked", index:0, className:"enyo-button-blue"},
-			{kind:"Button", caption:"Family", onclick:"tabClicked", index:1},
-			{kind:"Button", caption:"Work", onclick:"tabClicked", index:2},
-			{kind:"Button", caption:"+", style:"font-size:larger;font-weight:bold", className:"enyo-button-affirmative"},
+		    {name:"tabs", kind:"Repeater", onSetupRow:"setupTabs", height:"50px", layoutKind:"HFlexLayout"},
+			{kind:"Button", caption:"+", style:"font-size:larger;font-weight:bold", className:"enyo-button-affirmative", onclick:"addPageClicked"},
 		]},
-		{name:"scroller",kind:"SnapScroller",vertical:false,autoVertical:false,flex:1,onSnapFinish:"pageChanged"},		
-		{name:"contactMenu",kind:"Popup",scrim:true,className:"header-menu",components:[
-			{caption:"Add Contact",onclick:"onAddContact"},
-			{caption:"Add Group", onclick:"onAddGroup"},
-			{caption:"Edit Contact", onclick:"onEditContact"},
-			{caption:"Remove Contact", onclick:"onRemoveContact"},
+		{kind:"HFlexBox", flex:1, components:[
+		    {name:"scroller",kind:"SnapScroller",vertical:false,autoVertical:false,flex:1,onSnapFinish:"pageChanged"},
+		    {name:"toolbar", kind:"VToolbar", width:"55px", components:[
+            	{content:"Add", icon:"images/contact-icon.png", onclick:"addClicked"},
+            	{content:"Edit", icon:"images/contact-icon.png", onclick:"editClicked"},
+            	{content:"Remove", icon:"images/contact-icon.png", onclick:"removeClicked"},
+            	{content:"Message", icon:"images/card-icon.png", onclick:"messageClicked"},
+            ]},
 		]},
-		{name:"pageMenu",kind:"Popup",scrim:true,className:"header-menu",components:[
-			{caption:"Add Page", onclick:"onAddPage"},
-			{caption:"Rename Page", onclick:"onRenamePage"},
-			{caption:"Remove Page", onclick:"onRemovePage"},
-		]},
-		{name:"contacts", kind:"InContact.Contacts"}
+		{name:"contacts", kind:"InContact.Contacts"},
+		{name:"addPopup", kind:"PopupSelect", onSelect:"addSelected", components:[
+            {kind:"MenuItem", caption:$L("Add Contact"), value:0},
+            {kind:"MenuItem", caption:$L("Add Group"), value:1}
+        ]},
+        {name:"messagePopup", kind:"PopupSelect", onSelect:"messageSelected", components:[
+            {kind:"MenuItem", caption:$L("Email"), value:0},
+            {kind:"MenuItem", caption:$L("SMS"), value:1}
+        ]}
 	],
 	published:{
 
 	},
 	create:function() {
 		this.inherited(arguments);
-		
-		var kinds = [];
-		for(var i=0;i<3;i++) {
-			kinds.push({name:"page"+i})
+		this.createPages(this.$.contacts.getPages());
+	},
+	rendered:function() {
+		this.resized();
+		this.selectTab(0);
+	},
+	createPages:function(pages, render) {
+		var kinds = [], i=0, p;
+		while(p = pages[i]) {
+			kinds.push({page:p});
+			i++;
 		}
 		
 		this.$.scroller.createComponents(kinds, {
@@ -39,10 +49,18 @@ var _InContact = {
 			owner:this
 		});
 		
-		this.$.page0.setContacts(page0);
+		if(render) {
+			this.$.scroller.render();
+			this.$.tabs.render();
+			this.resizeHandler();
+		}
 	},
-	rendered:function() {
-		this.resized();
+	setupTabs:function(source, index) {
+		var p = this.$.contacts.getPage(index);
+		
+		if(p) {
+			return {kind:"InContact.PageTab", label:p.title, onSelect:"tabClicked", onChange:"tabChanged", onmousehold:"tabHeld", index:index};
+		}
 	},
 	showContactMenu:function() {
 		// TODO: fix menu item layout
@@ -53,27 +71,6 @@ var _InContact = {
 	},
 	pageChanged:function(sender) {
 		this.selectTab(sender.index)
-	},
-	onAddContact:function() {
-		this.log("enter")
-	},
-	onAddGroup:function() {
-		this.log("enter")	
-	},
-	onEditContact:function() {
-		this.log("enter")
-	},
-	onRemoveContact:function() {
-		this.log("enter")
-	},
-	onAddPage:function() {
-		this.log("enter")
-	},
-	onRenamePage:function() {
-		this.log("enter")
-	},
-	onRemovePage:function() {
-		this.log("enter")
 	},
 	resizeHandler:function() {
 		var n = this.$.scroller.hasNode();
@@ -92,60 +89,140 @@ var _InContact = {
 		this.$.scroller.snapTo(source.index);
 		this.selectTab(source.index);
 	},
-	selectTab:function(index) {
+	tabHeld:function(source, event) {
+		this.tabClicked(source);
+		this.resetTabs(source);
+		source.edit();
+	},
+	tabChanged:function(source, value) {
+		this.log(source.index, value);
+	},
+	resetTabs:function(selectedTab) {
 		for(var i=0,controls=this.$.header.getControls(),c;c = controls[i];i++) {
-			if(c.getCaption() === "+") continue;
-			
-			c.addRemoveClass("enyo-button-blue", i===index);
+			if(c.kind === "InContact.PageTab" && c !== selectedTab) {
+				c.reset();
+			}
 		}
-	}
-}
+	},
+	selectTab:function(index) {
+		var controls = this.$.tabs.getControls();
+		this.resetTabs(controls[index]);
+		
+		for(var i=0,c;c = controls[i];i++) {
+			enyo.log(c.kind);
+			if(c.kind === "InContact.PageTab") {
+				c.addRemoveClass("selected", i===index);
+			}
+		}
+	},
+	addClicked:function(source) {
+		this.$.addPopup.openAtControl(source);
+	},
+	editClicked:function() {
+		
+	},
+	removeClicked:function() {
+		
+	},
+	messageClicked:function(source) {
+		enyo.log(source);
+		this.$.messagePopup.openAtControl(source);
+	},
+	addSelected:function(source, selected) {
+		var v = selected.getValue();
+		switch(v) {
+			case 0:
+				this.log("Add contact");
+				break;
+			case 1:
+				this.log("Add group");
+				break;
+		}
+	},
+	messageSelected:function(source, selected) {
+		var v = selected.getValue();
+		switch(v) {
+			case 0:
+				this.log("Email");
+				break;
+			case 1:
+				this.log("SMS");
+				break;
+		}
+	},
+    addPageClicked:function() {
+    	var p = this.$.contacts.newPage();
+    	this.createPages([p], true);
+    }
+};
+
+var _VToolbar = {
+	name:"VToolbar",
+	kind:"Control",
+	className:"vtoolbar",
+	defaultKind:"ToolButton"
+};
+
+enyo.kind(_VToolbar);
+
+var _PageTab = {
+	name:"InContact.PageTab",
+	kind:"Control",
+	className:"page-tab",
+	published:{
+		label:""
+	},
+	events:{
+		onChange:"",
+		onSelect:""
+	},
+	components:[
+	    {kind:"Control", name:"text", onclick:"doSelect"},
+	    {kind:"HFlexBox", name:"editBox", showing:false, onmouseup:"editBoxReleased", components:[
+	        {kind:"Input", name:"input", onkeypress:"inputKeyPressed", onblur:"acceptClicked", selectAllOnFocus:true},
+	        //{kind:"Button", name:"accept", caption:"/", className:"enyo-button-affirmative", onclick:"acceptClicked"}
+	    ]}
+    ],
+    create:function() {
+    	this.inherited(arguments);
+    	
+    	this.labelChanged();
+    },
+    labelChanged:function() {
+    	this.$.text.setContent(this.label);
+    	this.$.input.setValue(this.label);
+    },
+    editBoxReleased:function() {
+    	this.$.input.forceFocus();
+    },
+    inputKeyPressed:function(source, event) {
+    	if(event.keyCode === 13) {
+    		this.reset(true);
+    	}
+    },
+    edit:function() {
+    	this.$.input.setValue(this.label);  // reset value to model
+    	
+    	this.$.text.hide();
+    	this.$.editBox.show();
+    },
+    reset:function(acceptChanges) {
+    	this.$.text.show();
+    	this.$.editBox.hide();
+    	
+    	if(acceptChanges) {
+    		this.label = this.$.input.getValue();
+        	this.$.text.setContent(this.label);
+        	
+        	this.doChange(this.label);
+    	}
+    },
+    acceptClicked:function() {
+    	this.log("blur");
+    	this.reset(true);
+    }
+};
+
+enyo.kind(_PageTab);
 
 enyo.kind(_InContact);
-
-var page0 = [
-{
-	id:"123",
-	largePhoto:"",
-	smallPhoto:"",
-	selections:[
-		{action:"phone",details:"p1",icon:"phone"},
-		{action:"sms",details:undefined,icon:"txt"},
-		{action:"email",details:"e1",icon:"email"},
-		{action:"im",details:"i1",icon:"im"}
-	]
-},
-{
-	id:"456",
-	largePhoto:"images/contact-icon.png",
-	smallPhoto:"",
-	selections:[
-		{action:"phone",details:"p2",icon:"phone"},
-		{action:"sms",details:"p2",icon:"sms2"},
-		{action:"email",details:"e2",icon:"factory"},
-		{action:"im",details:"i2",icon:"briefcase"}
-	]
-},
-{
-	id:"789",
-	largePhoto:"images/contact-icon.png",
-	smallPhoto:"",
-	selections:[
-		{action:"phone",details:"p2",icon:"phone"},
-		{action:"sms",details:"p2",icon:"sms2"},
-		{action:"email",details:"e2",icon:"factory"},
-		{action:"im",details:"i2",icon:"briefcase"}
-	]
-},
-{
-	id:"101112",
-	largePhoto:"images/contact-icon.png",
-	smallPhoto:"",
-	selections:[
-		{action:"phone",details:"p2",icon:"phone"},
-		{action:"sms",details:"p2",icon:"sms2"},
-		{action:"email",details:"e2",icon:"factory"},
-		{action:"im",details:"i2",icon:"briefcase"}
-	]
-}
-             ]
